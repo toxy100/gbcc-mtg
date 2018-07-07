@@ -1,3 +1,5 @@
+extensions [ graph gbcc maps ]
+
 globals [
   my-turtle-number
   my-user-id
