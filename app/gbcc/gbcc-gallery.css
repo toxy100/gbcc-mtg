@@ -1,0 +1,509 @@
+
+.gbcc-gallery {
+  -ms-flex: 1;
+      flex: 1;
+  margin-top: 0;
+  border:2px solid black;
+  padding-top: 1px;
+  padding-bottom: 1px;
+  border-top: 0px;
+  border-bottom: 0px;
+}
+
+.gbcc-gallery ul {
+  overflow:hidden;
+  list-style-type: none;
+}
+
+.gbcc-gallery img {
+  width:100%;
+  height:100%;
+}
+
+.gbcc-gallery li { 
+  text-align: left;
+  float:left;
+  border:5px solid white;
+  position: relative;
+  margin: 5px;
+  overflow: hidden;
+}
+
+.gbcc-gallery.small li {
+  width: 80px;
+  height: 80px;
+}
+
+.gbcc-gallery.medium li {
+  width: 120px;
+  height: 120px;
+}
+
+.gbcc-gallery.large li {
+  width: 160px;
+  height: 159px;
+}
+
+.gbcc-gallery span {
+  position: absolute;
+  background-color: white;
+}
+
+.gbcc-gallery li:hover {
+  cursor:pointer;
+  border:5px solid yellow;
+}
+
+.gbcc-gallery li.selected {
+  border:5px solid orange;
+}
+    
+.gbcc-gallery .card-image {
+  height: 99%;
+  width: 99%;
+  border: 1px solid black;
+}
+
+.gbcc-gallery .card-text {
+  height: 99%;
+  width: 92.5%;
+  padding:0px 5px 0px 5px;
+  font-size: 18px;
+  border:1px solid black;
+}
+
+.gbcc-gallery .arrow {
+  position: absolute;
+  text-align: center;
+  //display:none;
+  opacity: 0.6;
+}
+
+.gbcc-gallery.small .arrow {
+  top:45%;
+  width: 20px;
+  height: 20px;
+}
+
+.gbcc-gallery.medium .arrow {
+  top:45%;
+  width: 25px;
+  height: 25px;
+}
+
+.gbcc-gallery.large .arrow {
+  top:45%;
+  width: 25px;
+  height: 25px;
+}
+
+.gbcc-gallery.small .arrow-right {
+  left:60px;
+}
+
+.gbcc-gallery.medium .arrow-right {
+  left:95px;
+}
+
+.gbcc-gallery.large .arrow-right {
+  left:135px;
+}
+
+.gbcc-gallery .arrow-left {
+  border-top-left-radius: 50%;
+  border-bottom-left-radius: 50%;
+}
+
+.gbcc-gallery .arrow-right {
+  border-top-right-radius: 50%;
+  border-bottom-right-radius: 50%;
+}
+
+.gbcc-gallery .forever-icon:hover {
+  opacity: 1;
+  background-color: yellow;
+}
+
+.gbcc-gallery .forever-icon.selected {
+  background: orange;
+  opacity: 1;
+  display: block;
+}
+
+.gbcc-gallery .arrow i {
+  color: black;
+}
+
+.gbcc-gallery .arrow-left {
+}
+
+.gbcc-gallery .arrow:hover {
+  opacity:1;
+  background-color: yellow;
+}
+
+.gbcc-gallery .forever-icon {
+  left:84%;
+  top:84%;
+  background: white;
+  display: none;
+  opacity: 0.6;
+  width: 25px;
+  height: 25px;
+}
+
+.small .forever-icon {
+  font-size: 14px;
+}
+
+.medium .forever-icon {
+  font-size: 20px;
+}
+
+.large .forever-icon {
+  font-size: 24px;
+}
+
+.netlogo-gallery-tab {
+  position: relative;
+}
+
+#galleryExpandIcon {
+  position: absolute;
+  font-size: 22px;
+  color: #444;
+}
+
+.netlogo-gallery-tab.expand {
+  position: absolute;
+  top: 60px;
+  right:20px;
+  //left: 800px;
+  width: 800px;
+  border-radius: 10px 10px 0px 0px;
+}
+
+.netlogo-gallery-tab-content.expand {
+  position: absolute;
+  top: 100px;
+  border-bottom: 2px solid black;
+  //left: 800px;
+  right: 20px;
+  width: 818px;
+}
+
+
+.gallery-right {
+  position: absolute;
+  right: 5px;
+  font-size: 12px;
+  top: 2px;
+  color: #444;
+}
+
+.gallery-left {
+  position: absolute;
+  left: 5px;
+  font-size: 12px;
+  top: 2px;
+  color: #444;
+}
+
+.gallery-controls {
+  background-color: #F4F4F4;
+  position: relative;
+  border: 2px solid black;
+  border-bottom: 1px solid #CCC;
+  height: 20px;
+}
+
+.netlogo-gallery-tab-content.selected {
+  background-color: #ddd;
+}
+
+.netlogo-gallery-tab.selected {
+  background-color: #ccc;
+}
+
+.netlogo-gallery-tab:selected .gallery-forever-icon {
+  color: lime;
+}
+
+.gbcc-gallery .label {
+  padding: 0px 5px 0px 5px;
+  border: 1px solid black;
+  font-weight: bold;
+  font-size: 18px;
+}
+
+.gbcc-gallery .label.selected {
+  color: white;
+  background-color: black;
+}
+
+.gbcc-gallery .z20 {z-index:20}
+
+.gbcc-gallery .gray-border {
+  border: 5px solid #ddd;
+}
+
+.gbcc-gallery [myuser = "true"] {
+  border: 5px solid #BCBCE5;
+}
+
+i {
+  font-size: 24px; 
+}
+
+// extensions/
+
+.teacher-controls {
+  position: absolute;
+}
+
+#graphContainer {
+  position: absolute;
+  overflow: hidden;
+  top: 0px;
+  border: 1px solid gray;
+}
+
+#mapContainer {
+  position: absolute;
+  overflow: hidden;
+  top: 0px;
+  border: 1px solid gray;
+}
+
+.physics-controls {
+  position: absolute; 
+  //top: 5px; 
+  //left: 5px; 
+  font-size: 22px;
+  color: limegreen;
+}
+.physics-controls .selected {
+  display: inline-block;
+}
+.physics-controls :not(.selected) {
+  display: none;
+}
+#physicsOn {
+  color: mediumpurple;
+}
+#physicsOff {
+  color: gray;
+}
+#physicsContainer {
+  position: absolute;
+  overflow: hidden;
+  top: 0px;
+}
+#physicsContainer.selected {
+  border: 2px solid mediumpurple;
+}
+#physicsContainer:not(.selected) {
+  border: 2px solid #aaa;
+  -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+  filter: grayscale(100%);
+}
+
+#physicsMenu div:not(.selected) {
+  -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+  filter: grayscale(100%);
+}
+
+#physicsMenu img:not(.purple):hover {
+  border: 2px solid yellow;
+}
+
+
+#physicsMenu.selected img.selected {
+  border: 2px solid rebeccapurple;
+}
+
+
+/*
+#physicsMenu.selected i:hover {
+//  color:blue;
+  border: 2px solid yellow;
+}*/
+
+/*
+#physicsMenu {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  width: calc(100% - 3px);
+  //background-color: white;
+  color: black;
+  //border: 2px solid red;
+  font-size: 16px;
+  height: 30px;
+  z-index: 100;
+  padding: 1px 0px 0px 1px
+}*/
+
+#physicsStateControls {
+  float: right;
+  width: 50px;
+  text-align: right;
+  background-color: #ccc;
+  height: 33px;
+  padding: 5px;
+}
+
+/*
+#physicsStateControls i {
+  padding: 6px 3px 6px 3px;
+  border: 2px solid #ccc;
+  background-color: #ccc;
+  border-radius: 5px;
+  color: black;
+}*/
+
+#physicsMenu .hidden {
+  display: none;
+}
+
+/*
+//#physicsStateControls .selected {
+//  color: black;
+//}
+*/
+/*
+#physicsDrawControls {
+  //overflow-x: scroll;
+  overflow-y: hidden;
+  white-space:nowrap;
+  width: calc(100% - 70px);
+  display: inline-block;
+  background-color: #ccc;
+  height: 33px;
+  padding: 5px;
+}
+
+#physicsDrawControls img {
+  border: 2px solid gray;
+  border-radius: 5px;
+}
+*/
+
+#physicsMenu {
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  //width: calc(100% - 3px);
+  //color: black;
+  //font-size: 16px;
+  //height: 30px;
+  z-index: 100;
+  padding: 1px 0px 0px 1px;
+  display: inline-block;
+  background-color: #ddd;
+  height: 35px;
+  width: 100%;
+  //text-align: center;
+  font-size: 12;
+}
+
+#physicsSettings {
+  position: absolute; 
+  //top: 415px; 
+  background-color: #ccc; 
+  //padding: 3px; 
+  width: 100%; 
+  border: 1px solid limegreen;
+}
+/*
+#physicsTrash {
+  float:right;
+//  width: 16px;
+//  color: black;
+//  background-color: white;
+//  padding: 3px;border: 1px solid black;
+//  padding-right: 30x;
+  font-size: 14px;
+}
+
+#physicsSettings input[type='number'] {
+  width: 40px;
+}
+#physicsSettings input[type='text'] {
+  width: 60px;
+}
+*/
+#physicsMenu img {
+  border: 2px solid gray;
+  border-radius: 5px;
+  width: 25px;
+  height: 25px;
+}
+
+#physicsMenu i, #physicsSettings i {
+  border: 2px solid gray;
+  width: 20px;
+  color: mediumpurple;
+  background-color: white; //gray;
+  padding: 6px 3px 6px 3px;
+  border-radius: 50%;
+  text-align: center;
+}
+
+#physicsMenu i:hover, #physicsSettings i:hover {
+  //border: 2px solid yellow; //limegreen;
+  color:white;
+  //background-color:rgb(214, 202, 250);;
+  background-color: mediumpurple;
+}
+
+/*
+#physicsMenu .leftControls, #physicsSettings .leftControls {
+  overflow-y: hidden;
+  white-space: nowrap;
+  width: calc(100% - 125px);
+  display: inline-block;
+  background-color: #eee;
+  height: 33px;
+  padding: 5px;
+}
+
+#physicsMenu .rightControls, #physicsSettings .rightControls {
+  float: right;
+  width: 105px;
+  text-align: right;
+  background-color: #eee;
+  height: 33px;
+  padding: 5px;
+}
+
+#physicsSettings .rightControls {
+  width: 30px;
+}
+
+#physicsSettings .leftControls {
+  width: calc(100% - 50px);
+}
+*/
+#physicsMenu .leftControls {
+  width: 130px;
+  float: left;
+}
+
+#physicsMenu .centerControls {
+  //border: 2px solid gray;
+  //background-color: white;
+  float: left;
+  margin-top: 8;
+  width: calc(100% - 272px);
+  height: 16px;
+  text-align:center;
+}
+#physicsMenu .rightControls {
+  width: 135px;
+  float: right;
+}
+#physicsMenu #selectionMode {
+  top: 8px;
+  position: absolute;
+}

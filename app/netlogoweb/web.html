@@ -1,0 +1,289 @@
+
+<!-- saved from url=(0096)file:///Users/carolynremmler/Downloads/NetLogo%20Web_%20BeeSmart%20Hive%20Finding_files/web.html -->
+<html><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    
+    <!--<base target="_parent">--><!--<base href="." target="_parent">--><base href="." target="_parent">
+    <link rel="stylesheet" href="./codemirror.css">
+    <link rel="stylesheet" href="./dialog.css">
+    <link rel="stylesheet" href="./classes.css">
+    <link rel="stylesheet" href="./widgets.css">
+    <link rel="stylesheet" href="./ui-editor.css">
+    <link rel="stylesheet" href="./netlogoweb.css">
+    <link rel="stylesheet" href="./netlogo-syntax.css">
+    <link rel="stylesheet" href="./spinner.css">
+    <link rel="stylesheet" href="./alert.css">
+  <style type="text/css"></style><title>NetLogo Web: NewModel</title><style type="text/css"></style></head>
+  <body style="margin: 0px;">
+    <script>window.exports = {};</script>
+    <div class="dark-overlay" id="loading-overlay" style="display: none;">
+  <div id="spinner">
+    
+      <svg class="spinner-img turtle1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 0.125);" transform="rotate(45.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+      <svg class="spinner-img turtle2" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 0.25);" transform="rotate(90.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+      <svg class="spinner-img turtle3" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 0.375);" transform="rotate(135.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+      <svg class="spinner-img turtle4" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 0.5);" transform="rotate(180.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+      <svg class="spinner-img turtle5" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 0.625);" transform="rotate(225.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+      <svg class="spinner-img turtle6" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 0.75);" transform="rotate(270.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+      <svg class="spinner-img turtle7" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 0.875);" transform="rotate(315.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+      <svg class="spinner-img turtle8" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 50 55">
+        <polygon points="22,0 0,49 22,40 44,49" style="fill: rgba(255, 255, 255, 1.0);" transform="rotate(360.0, 22, 24)">
+        </polygon>
+      </svg>
+    
+  </div>
+</div>
+
+    <div class="dark-overlay" id="alert-overlay" style="display : none ;">
+    <div id="alert-dialog">
+        <h3 id="alert-title">Error</h3>
+        
+        <div id="alert-message" class="alert-text">
+            NetLogo Web has encountered a problem.
+        </div>
+        <div class="alert-text standalone-text">
+            It looks like you're using NetLogo Web in standalone mode.
+            <br>
+            If the above error is being caused by an unimplemented primitive, we recommend a quick visit to
+                <a href="https://netlogoweb.org/" target="_blank">NetLogoWeb.org</a>
+                to see if the primitive has been implemented in the most up-to-date version.
+        </div>
+        <div id="alert-dismiss-container">
+            <button id="alert-dismiss" class="alert-button alert-separator-top" onclick="window.nlwAlerter.hide()">
+                Dismiss
+            </button>
+        </div>
+    </div>
+</div>
+
+    <div id="netlogo-model-container" style="display: inline-block;"><div class="netlogo-model" tabindex="1" style="min-width: 639px;"><div class="modal-overlay" id="modal-overlay" style="display: none;"></div> <div class="netlogo-header"><div class="netlogo-subheader"><div class="netlogo-powered-by"><a href="http://ccl.northwestern.edu/netlogo/"><img alt="NetLogo" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAIGNIUk0AAHolAACAgwAA+f8AAIDpAAB1MAAA6mAAADqYAAAXb5JfxUYAAANcSURBVHjarJRdaFxFFMd/M/dj7252uxubKms+bGprVyIVbNMWWqkQqtLUSpQWfSiV+oVFTcE3DeiDgvoiUSiCYLH2oVoLtQ+iaaIWWtE2FKGkkSrkq5svN+sm7ma/7p3x4W42lEbjQw8MM8yc87/nzPnNFVprbqWJXyMyXuMqx1Ni6N3ny3cX8tOHNLoBUMvESoFI2Xbs4zeO1lzREpSrMSNS1zkBDv6uo1/noz1H7mpvS4SjprAl2AZYEqzKbEowBAgBAkjPKX2599JjT7R0bj412D0JYNplPSBD1G2SmR/e6u1ikEHG2vYiGxoJmxAyIGSCI8GpCItKimtvl2JtfGujDNkX6epuAhCjNeAZxM1ocPy2Qh4toGQ5DLU+ysiuA2S3P0KgJkjAgEAlQylAA64CG/jlUk6//ng4cNWmLK0yOPNMnG99Rs9LQINVKrD+wmke7upg55PrWP3eYcwrlykpKCkoelDy/HVegQhoABNAepbACwjOt72gZkJhypX70YDWEEklue+rbnYc2MiGp1upPfYReiJJUUG58gFXu4udch1wHcjFIgy0HyIjb2yvBpT2F6t+6+f+D15lW8c9JDo7iPSdgVIRLUqL2AyHDQAOf9hfbqxvMF98eT3RuTS1avHyl+Stcphe2chP9+4k/t3RbXVl3W+Ws17FY56/w3VcbO/koS/eZLoAqrQMxADZMTYOfwpwoWjL4+bCYcgssMqGOzPD6CIkZ/3SxTJ0ayFIN6/BnBrZb2XdE1JUgkJWkfrUNRJnPyc16zsbgPyXIUJBpvc+y89nk/S8/4nek3NPGeBWMwzGvhUPnP6RubRLwfODlqqx3LSCyee2MnlwMwA2RwgO5qouVcHmksUdJweYyi8hZkrUjgT5t/ejNq0jBsSqNWsKyT9uFtxw7Bs585d3g46KOeT2bWHmtd14KyP+5mzqpsYU3OyioACMhGiqPTMocsrHId9cy9BLDzKxq8X3ctMwlV6yKSHL4fr4dd0DeQBTBUgUkvpE1kVPbqkX117ZzuSaFf4zyfz5n9A4lk0yNU7vyb7jTy1kmFGipejKvh6h9n0W995ZPTu227hqmCz33xXgFV1v9NzI96NfjndWt7XWCB/7BSICFWL+j3lAofpCtfYFb6X9MwCJZ07mUsXRGwAAAABJRU5ErkJggg==" style="vertical-align: middle;"> <span style="font-size: 16px;">powered by NetLogo</span></a></div></div> <div class="netlogo-model-masthead"><div class="flex-row" style="justify-content: center; height: 30px; line-height: 30px;"><h2 class="netlogo-widget netlogo-model-title" id="netlogo-title">NewModel</h2></div></div> <div class="flex-column" style="align-items: flex-end; user-select: none;"><div class="netlogo-export-wrapper"><span style="margin-right: 4px;">File:</span> <button class="netlogo-ugly-button">New</button></div> <div class="netlogo-export-wrapper" style="display: block;"><span style="margin-right: 4px;">Export:</span> <button class="netlogo-ugly-button">NetLogo</button> <form action="file:///Users/carolynremmler/Downloads/NetLogo%20Web_%20BeeSmart%20Hive%20Finding_files/exportGbccWorld" method="post" enctype="multipart/form-data" style="display: inline-block;"><input class="roomNameInput" type="text" name="roomname" value="" style="display: none;"> <input class="schoolNameInput" type="text" name="schoolname" value="" style="display: none;"> <button class="netlogo-ugly-button" type="submit">World</button></form></div></div></div> <div class="netlogo-interface-unlocker-container enabled"><div class="netlogo-interface-unlocker"></div> <div style="width: 5px;"></div> <span class="netlogo-interface-mode-text">Mode: Interactive</span></div> <div class="help-popup" id="help-dialog" tabindex="0" style="display: none; top: 193.9px; left: 63.9px; width: 511.2px;"><div class="widget-edit-closer" id="-closer">X</div> <div><table><table class="help-key-table"><tr><td class="help-keys"><kbd>⌘</kbd><kbd>shift</kbd><kbd>l</kbd></td> <td class="help-explanation">switch to authoring mode</td></tr></table></table></div></div>  <label class="netlogo-speed-slider"><span class="netlogo-label">model speed</span> <input type="range" min="-1" max="1" step="0.01" value="0"> <span class="netlogo-label">ticks: </span></label> <div class="netlogo-widget-container" style="position: relative; width: 639px; height: 439px;">  <div class="netlogo-widget netlogo-view-container" id="netlogo-view-0" style="position: absolute; left: 210px; top: 10px; width: 429px; height: 429px;"><canvas class="netlogo-canvas unselectable" width="858" height="858" style="width: 429px; height: 429px;"></canvas></div>          </div> <div class="netlogo-tab-area" style="max-width: 639px;"><label class="netlogo-tab"><input id="console-toggle" type="checkbox" value="on"> <span class="netlogo-tab-text">Command Center</span></label>  <label class="netlogo-tab"><input id="code-tab-toggle" type="checkbox" value="on"> <span class="netlogo-tab-text">NetLogo Code</span></label>  <div class="netlogo-gallery-tab"><span class="netlogo-tab-text">Gallery</span></div> <div class="netlogo-gallery-tab-content"></div> <label class="netlogo-tab"><input id="info-toggle" type="checkbox" value="on"> <span class="netlogo-tab-text">Model Info</span></label> </div> <input id="import-world-input" type="file" name="import-world" value="" style="display: none;"></div></div>
+    <script src="./jquery.js"></script>
+    <script src="./FileSaver.js"></script>
+    <script src="./html-sanitizer-minified.js"></script>
+    <script src="./markdown.js"></script>
+    <script src="./mousetrap.js"></script>
+    <script src="./highcharts.js"></script>
+    <script src="./exporting.js"></script>
+    <script src="./export-data.js"></script>
+    <script src="./ractive.js"></script>
+    <script src="./codemirror.js"></script>
+    <script src="./dialog.js"></script>
+    <script src="./simple.js"></script>
+    <script src="./searchcursor.js"></script>
+    <script src="./search.js"></script>
+
+    <script src="./tortoise-compiler.js"></script>
+    <script src="./netlogo-engine.js"></script>
+
+    <script src="./keywords.js"></script>
+    <script src="./codemirror-mode.js"></script>
+    <script src="./colors.js"></script>
+    <script src="./default-shapes.js"></script>
+    <script src="./global-noisy-things.js"></script>
+    <script src="./highcharts(1).js"></script>
+    <script src="./models.js"></script>
+    <script src="./new-model.js"></script>
+    <script src="./checkbox.js"></script>
+    <script src="./code-container.js"></script>
+    <script src="./color-input.js"></script>
+    <script src="./dropdown.js"></script>
+    <script src="./labeled-input.js"></script>
+    <script src="./font-size.js"></script>
+    <script src="./print-area.js"></script>
+    <script src="./spacer.js"></script>
+    <script src="./tick-counter.js"></script>
+    <script src="./variable.js"></script>
+    <script src="./context-menu.js"></script>
+    <script src="./draggable.js"></script>
+    <script src="./edit-form.js"></script>
+    <script src="./widget.js"></script>
+    <script src="./button.js"></script>
+    <script src="./chooser.js"></script>
+    <script src="./code-editor.js"></script>
+    <script src="./console.js"></script>
+    <script src="./info.js"></script>
+    <script src="./input.js"></script>
+    <script src="./label.js"></script>
+    <script src="./monitor.js"></script>
+    <script src="./output.js"></script>
+    <script src="./plot.js"></script>
+    <script src="./resizer.js"></script>
+    <script src="./slider.js"></script>
+    <script src="./switch.js"></script>
+    <script src="./title.js"></script>
+    <script src="./view.js"></script>
+    <script src="./draw-shape.js"></script>
+    <script src="./link-drawer.js"></script>
+    <script src="./view-controller.js"></script>
+    <script src="./config-shims.js"></script>
+    <script src="./event-traffic-control.js"></script>
+    <script src="./handle-context-menu.js"></script>
+    <script src="./handle-widget-selection.js"></script>
+    <script src="./help-dialog.js"></script>
+    <script src="./initialize-ui.js"></script>
+    <script src="./set-up-widgets.js"></script>
+    <script src="./skeleton.js"></script>
+    <script src="./widget-controller.js"></script>
+    <script src="./babybehaviorspace.js"></script>
+    <script src="./session-lite.js"></script>
+    <script src="./tortoise.js"></script>
+
+    <script type="text/javascript">
+    var jsRoutes = {}; (function(_root){
+var _nS = function(c,f,b){var e=c.split(f||"."),g=b||_root,d,a;for(d=0,a=e.length;d<a;d++){g=g[e[d]]=g[e[d]]||{}}return g}
+var _qS = function(items){var qs = ''; for(var i=0;i<items.length;i++) {if(items[i]) qs += (qs ? '&' : '') + items[i]}; return qs ? ('?' + qs) : ''}
+var _s = function(p,s){return p+((s===true||(s&&s.secure))?'s':'')+':\/\/'}
+var _wA = function(r){return {ajax:function(c){c=c||{};c.url=r.url;c.type=r.method;return jQuery.ajax(c)}, method:r.method,type:r.method,url:r.url,absoluteURL: function(s){return _s('http',s)+'localhost:9000'+r.url},webSocketURL: function(s){return _s('ws',s)+'localhost:9000'+r.url}}}
+_nS('controllers.Local'); _root['controllers']['Local']['standalone'] = 
+        function() {
+          return _wA({method:"GET", url:"\/" + "standalone"})
+        }
+      ;
+})(jsRoutes)
+</script>
+
+
+    <!-- This can be used to insert NetLogo code into this page -->
+    <script type="text/nlogo" id="nlogo-code" data-filename="model.nlogo"></script>
+
+    <script>
+
+      Ractive.DEBUG = true;
+
+      var loadingOverlay  = document.getElementById("loading-overlay");
+      var activeContainer = loadingOverlay;
+      var modelContainer  = document.querySelector("#netlogo-model-container");
+      var nlogoScript     = document.querySelector("#nlogo-code");
+      var standaloneURL   = "//localhost:9000/standalone";
+      var pageTitle       = function(modelTitle) {
+        if (modelTitle != null && modelTitle != "") {
+          return "NetLogo Web: " + modelTitle;
+        } else {
+          return "NetLogo Web";
+        }
+      };
+      var session;
+      var openSession = function(s) {
+        session = s;
+        document.title = pageTitle(session.modelTitle());
+        activeContainer = modelContainer;
+        session.startLoop();
+      };
+
+      var isStandaloneHTML = false;
+
+      if (nlogoScript.textContent.length > 0) {
+        isStandaloneHTML = true;
+      }
+
+      window.nlwAlerter = new NLWAlerter(document.getElementById("alert-overlay"), isStandaloneHTML);
+
+      var displayError = function(error) {
+        // in the case where we're still loading the model, we have to
+        // post an error that cannot be dismissed, as well as ensuring that
+        // the frame we're in matches the size of the error on display.
+        if (activeContainer === loadingOverlay) {
+          window.nlwAlerter.displayError(error, false);
+          activeContainer = window.nlwAlerter.alertContainer;
+        } else {
+          window.nlwAlerter.displayError(error);
+        }
+      };
+
+      var loadModel = function(nlogo, path) {
+        if (session) {
+          session.teardown();
+        }
+        window.nlwAlerter.hide();
+        activeContainer = loadingOverlay;
+        Tortoise.fromNlogo(nlogo, modelContainer, path, openSession, displayError);
+      };
+
+      if (nlogoScript.textContent.length > 0) {
+        Tortoise.fromNlogo(nlogoScript.textContent,
+                           modelContainer,
+                           nlogoScript.dataset.filename,
+                           openSession,
+                           displayError);
+      } else if (window.location.search.length > 0) {
+
+        var query    = window.location.search.slice(1);
+        var pairs    = query.split(/&(?=\w+=)/).map(function(x) { return x.split('='); });
+        var paramObj = pairs.reduce(function(acc, pair) { acc[pair[0]] = pair[1]; return acc; }, {})
+
+        var url       = (paramObj.url  !== undefined) ?           paramObj.url   : query;
+        var modelName = (paramObj.name !== undefined) ? decodeURI(paramObj.name) : undefined;
+
+        Tortoise.fromURL(url, modelName, modelContainer, openSession, displayError);
+
+      } else {
+        loadModel(exports.newModel, "NewModel");
+      }
+
+      window.addEventListener("message", function (e) {
+        if (e.data.type === "nlw-load-model") {
+          loadModel(e.data.nlogo, e.data.path);
+        } else if (e.data.type === "nlw-open-new") {
+          loadModel(exports.newModel, "NewModel");
+        } else if (e.data.type === "nlw-update-model-state") {
+          session.widgetController.setCode(e.data.codeTabContents);
+        } else if (e.data.type === "run-baby-behaviorspace") {
+          var reaction =
+            function(results) {
+              e.source.postMessage({ type: "baby-behaviorspace-results", id: e.data.id, data: results }, "*");
+            };
+          session.asyncRunBabyBehaviorSpace(e.data.config, reaction);
+       }
+      });
+
+      if (parent !== window) {
+        var width = "", height = "";
+        window.setInterval(function() {
+          if (activeContainer.offsetWidth  !== width ||
+              activeContainer.offsetHeight !== height ||
+              (session !== undefined && document.title != pageTitle(session.modelTitle()))) {
+            if (session !== undefined) {
+              document.title = pageTitle(session.modelTitle());
+            }
+            width = activeContainer.offsetWidth;
+            height = activeContainer.offsetHeight;
+            parent.postMessage({
+              width:  activeContainer.offsetWidth,
+              height: activeContainer.offsetHeight,
+              title:  document.title,
+              type:   "nlw-resize"
+            }, "*");
+          }
+        }, 200);
+      }
+    </script>
+  
+
+</body></html>

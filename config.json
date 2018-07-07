@@ -1,0 +1,25 @@
+{
+  "interfaceJs": {
+    "loginComponents": {
+      "componentRange": [14,14]
+    },
+    "studentComponents": {
+      "componentRange": [5,13]
+    },
+    "teacherComponents": {
+      "componentRange": [0,4]
+    }
+  },
+  "galleryJs": {
+    "allowTabs": true, 
+    "allowMultipleLayers": true, 
+    "allowMultipleSelections": true, 
+    "allowCanvasForeverButtons": true, 
+    "allowGalleryControls": true, 
+    "allowTeacherControls": true, 
+    "legacyHubnet": false, 
+    "secondViewString": [210, 10, 647, 448]
+  }
+}
+
+
