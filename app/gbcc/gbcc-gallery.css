@@ -44,6 +44,11 @@
   height: 159px;
 }
 
+.gbcc-gallery.extra-large li {
+  width: 250px;
+  height: 250px;
+}
+
 .gbcc-gallery span {
   position: absolute;
   background-color: white;
@@ -66,7 +71,7 @@
 
 .gbcc-gallery .card-text {
   height: 99%;
-  width: 92.5%;
+  width: 95%;
   padding:0px 5px 0px 5px;
   font-size: 18px;
   border:1px solid black;
@@ -83,18 +88,29 @@
   top:45%;
   width: 20px;
   height: 20px;
+  font-size: 18px;
+
 }
 
 .gbcc-gallery.medium .arrow {
   top:45%;
   width: 25px;
   height: 25px;
+  font-size: 17px;
 }
 
 .gbcc-gallery.large .arrow {
   top:45%;
   width: 25px;
   height: 25px;
+  font-size: 18px;
+}
+
+.gbcc-gallery.extra-large .arrow {
+  top:45%;
+  width: 35px;
+  height: 35px;
+  font-size: 20px;
 }
 
 .gbcc-gallery.small .arrow-right {
@@ -107,6 +123,10 @@
 
 .gbcc-gallery.large .arrow-right {
   left:135px;
+}
+
+.gbcc-gallery.extra-large .arrow-right {
+  left:214px;
 }
 
 .gbcc-gallery .arrow-left {
@@ -237,8 +257,7 @@
 }
 
 .gbcc-gallery .label.selected {
-  color: white;
-  background-color: black;
+  background-color: #8FE585;
 }
 
 .gbcc-gallery .z20 {z-index:20}
@@ -247,7 +266,11 @@
   border: 5px solid #ddd;
 }
 
-.gbcc-gallery [myuser = "true"] {
+//.gbcc-gallery [myuser = "true"] {
+//  border: 5px solid #BCBCE5;
+//}
+
+.gbcc-gallery [claimed = "true"] {
   border: 5px solid #BCBCE5;
 }
 
@@ -255,7 +278,7 @@ i {
   font-size: 24px; 
 }
 
-// extensions/
+// extensions
 
 .teacher-controls {
   position: absolute;

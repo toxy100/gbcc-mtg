@@ -6,121 +6,54 @@ Physics = (function() {
   ////// SETUP PHYSICS //////
   
   function setupInterface() {
-    viewWidth = parseFloat($(".netlogo-canvas").css("width"));
-    viewHeight = parseFloat($(".netlogo-canvas").css("height"));
-    //var spanText = "<div class='physics-controls'>";
-    //spanText +=       "<i id='physicsOn' class='fa fa-toggle-on' aria-hidden='true'></i>";
-    //spanText +=       "<i id='physicsOff' class='fa fa-toggle-off' aria-hidden='true'></i>";
-    //spanText +=    "</div>";
-    //$(".netlogo-widget-container").append(spanText);
-    spanText =    "<div id='physicsContainer'></div>";
-    $(".netlogo-widget-container").append(spanText);
-    $(".physics-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) + 8 + "px");
-    $(".physics-controls").css("top", $(".netlogo-view-container").css("top"));
-    $("#physicsContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 5 + "px");
-    $("#physicsContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 4 + "px");
-    $("#physicsContainer").css("left", $(".netlogo-view-container").css("left"));
-    $("#physicsContainer").css("top", $(".netlogo-view-container").css("top"));
-    $("#physicsContainer").css("display", "none");
-    $("#physicsContainer").css("z-index","-1");
-    $(".physics-controls").css("display","none");
-    spanText = "<div id='physicsMenu'>";
-    spanText +=       "<div class='leftControls'>"; //id='physicsDrawControls'>";
-    spanText +=         "<div style='display:inline-block'><div><input type='checkbox' id='showAABB'></div><div><input type='checkbox' id='showCenter'></div></div>";
-    spanText +=         " <img src='./app/gbcc/physics-ui/a1.png' class='physics-drag purple hidden'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a2.png' class='physics-drag white'>"
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a14.png' class='physics-target purple hidden'>"
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a13.png' class='physics-target white'>"
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a16.png' class='physics-group purple hidden'>"
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a15.png' class='physics-group white'>"
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a20.png' class='physics-force purple hidden'>"
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a19.png' class='physics-force white'>"
-
-    spanText +=         "<select id='selectionMode'>"
-    spanText +=           "<option selected >Shape</option>";
-    spanText +=           "<option>Body</option>";
-    spanText +=           "<option>Target</option>";
-    spanText +=         "</select>"
-    
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a18.png' class='physics-force purple hidden'>"
-    //spanText +=         " <img src='./app/gbcc/physics-ui/a17.png' class='physics-force white'>"
-    /*
-    spanText +=         " <img src='./app/gbcc/physics-ui/a9.png' class='physics-group purple hidden'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a10.png' class='physics-group white'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a11.png' class='physics-target purple hidden'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a12.png' class='physics-target white'>"
-    */
-    spanText +=       "</div>";
-    spanText +=       "<div class='centerControls'>";
-    spanText +=         "<span></span>"
-    spanText +=       "</div>"
-    spanText +=       "<div class='rightControls'>"; //"<div id='physicsStateControls'>";
-    
-    spanText +=         " <img src='./app/gbcc/physics-ui/a3.png' class='physics-line purple hidden'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a4.png' class='physics-line white'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a5.png' class='physics-circle purple hidden'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a6.png' class='physics-circle white'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a7.png' class='physics-triangle purple hidden'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a8.png' class='physics-triangle white'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a23.png' class='physics-rect purple hidden'>"
-    spanText +=         " <img src='./app/gbcc/physics-ui/a22.png' class='physics-rect white'>"
-    
-    //spanText +=         "<i class='fa fa-save' id='physicsSave' aria-hidden='true'></i>";
-    //spanText +=         " <i class='fa fa-refresh' id='physicsRefresh' aria-hidden='true'></i>";
-    //spanText +=         " <i class='fa fa-play' id='physicsPlay' aria-hidden='true'></i>";
-    //spanText +=         " <i class='fa fa-pause hidden' id='physicsPause' aria-hidden='true'></i>";
-    spanText +=       "</div>";
-    spanText += "</div>";
-    $(".netlogo-view-container").append(spanText);  
-    
-    //spanText =  "<div id='physicsSettings' class='hidden'>";
-    /*
-    spanText += "  <div class='leftControls'>";//"<span id='shapeSettings'>";
-    spanText += "    <div id='dragModeSettings'>";
-    spanText += "      ShapeId: <input id='shapeId' type='text'>";
-    spanText += "      BodyId: <select id='bodyIdShapeMode'>";
-    spanText += "        <option></option>";
-    spanText += "      </select>";
-    spanText += "      D:<input type='number' id='density' title='density'>";
-    spanText += "      R:<input type='number' id='restitution' title='restitution'>";
-    spanText += "      F:<input type='number' id='friction' title='friction'>";
-    spanText += "    </div>";
-    spanText += "    <div id='groupModeSettings' class='in-line-block'>";
-    spanText += "      BodyId: <input id='bodyIdBodyMode' type='text' value='123'>";
-    spanText += "      Type:<select id='objectType' style='background-color:white'><option value='2'>Dynamic</option><option value='0'>Static</option><option value='1'>Ghost</option></select>";
-    spanText += "      Angle:<input type='number' id='angle'>";
-    spanText += "    </div>";
-    spanText += "    <div id='targetModeSettings' class='in-line-block'>";
-    spanText += "      TargetId: <input id='targetId' type='text' value='123'>";
-    spanText += "      BodyId: <select id='bodyIdTargetMode'>";
-    spanText += "        <option></option>";
-    spanText += "      </select>";
-    spanText += "      <input type='checkbox' id='snap'> Snap";
-    spanText += "    </div>";
-    spanText += "    <div id='worldModeSettings' class='in-line-block'>";
-    spanText += "      Gravity:<input type='checkbox' id='gravityX'>x";
-    spanText += "      <input type='checkbox' id='gravityY'>y Wrap:<input type='checkbox' id='wrapX'>x";
-    spanText += "      <input type='checkbox' id='wrapY'>y";
-    spanText += "    </div>";
-    spanText += "  </div>"; 
-    spanText += "  <div class='rightControls'>";//"<span id='physicsTrash'>";
-    spanText += "    <i class='fa fa-trash-o' id='physicsDelete' aria-hidden='true'></i>";
-    spanText += "  </div>";
-    */
-    //spanText += "</div>";
-    //$(".netlogo-view-container").append(spanText);  
-    $("#physicsMenu").css("display", "none");
-    $("#physicsSettings").css("top", parseFloat($(".netlogo-canvas").css("height")) - 34 + "px");
-    //$("#physicsContainer").css("display","inline-block");
-    //$(".physics-controls").css("display","inline-block");
-    //$("#physicsMenu").css("display","inline-block");
-    //$("#physicsMenu .purple").addClass("hidden");
-    //$("#physicsMenu .white").removeClass("hidden");
-    updatePhysics("physicsOff");
-    Physicsb2.createWorld({width: universe.model.world.worldwidth, height: universe.model.world.worldheight});//[[false, true], [viewWidth, viewHeight], [true, true]]);
-  //  Physicsb2.createWorld({width: viewWidth, height: viewHeight});//[[false, true], [viewWidth, viewHeight], [true, true]]);
-    $("#physicsContainer").css("display", "none");
-    setupEventListeners();
+    if ($("#physicsContainer").length === 0) {
+      viewWidth = parseFloat($(".netlogo-canvas").css("width"));
+      viewHeight = parseFloat($(".netlogo-canvas").css("height"));
+      spanText =    "<div class='gbcc-widget' id='physicsContainer'></div>";
+      $(".netlogo-widget-container").append(spanText);
+      $(".physics-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) + 8 + "px");
+      $(".physics-controls").css("top", $(".netlogo-view-container").css("top"));
+      $("#physicsContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 5 + "px");
+      $("#physicsContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 4 + "px");
+      $("#physicsContainer").css("left", $(".netlogo-view-container").css("left"));
+      $("#physicsContainer").css("top", $(".netlogo-view-container").css("top"));
+      $("#physicsContainer").css("display", "none");
+      $("#physicsContainer").css("z-index","-1");
+      $(".physics-controls").css("display","none");
+      spanText = "<div id='physicsMenu'>";
+      spanText +=       "<div class='leftControls'>"; //id='physicsDrawControls'>";
+      spanText +=         "<div style='display:inline-block'><div><input type='checkbox' id='showAABB'></div><div><input type='checkbox' id='showCenter'></div></div>";
+      spanText +=         " <img src='./app/gbcc/physics-ui/a1.png' class='physics-drag purple hidden'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a2.png' class='physics-drag white'>"
+      spanText +=         "<select id='selectionMode'>"
+      spanText +=           "<option selected >Shape</option>";
+      spanText +=           "<option>Body</option>";
+      spanText +=           "<option>Target</option>";
+      spanText +=         "</select>"
+      spanText +=       "</div>";
+      spanText +=       "<div class='centerControls'>";
+      spanText +=         "<span></span>"
+      spanText +=       "</div>"
+      spanText +=       "<div class='rightControls'>"; //"<div id='physicsStateControls'>";
+      
+      spanText +=         " <img src='./app/gbcc/physics-ui/a3.png' class='physics-line purple hidden'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a4.png' class='physics-line white'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a5.png' class='physics-circle purple hidden'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a6.png' class='physics-circle white'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a7.png' class='physics-triangle purple hidden'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a8.png' class='physics-triangle white'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a23.png' class='physics-rect purple hidden'>"
+      spanText +=         " <img src='./app/gbcc/physics-ui/a22.png' class='physics-rect white'>"
+      spanText +=       "</div>";
+      spanText += "</div>";
+      $(".netlogo-view-container").append(spanText);  
+      $("#physicsMenu").css("display", "none");
+      $("#physicsSettings").css("top", parseFloat($(".netlogo-canvas").css("height")) - 34 + "px");
+      updatePhysics("physicsOff");
+      Physicsb2.createWorld({width: universe.model.world.worldwidth, height: universe.model.world.worldheight});//[[false, true], [viewWidth, viewHeight], [true, true]]);
+      $("#physicsContainer").css("display", "none");
+      setupEventListeners();
+    }
   }
   
   function setupEventListeners() {
@@ -287,6 +220,7 @@ Physics = (function() {
     $(".physics-controls").css("display","inline-block");
     updatePhysics("physicsOn");
     $("#physicsContainer").css("display","inline-block");
+    console.log("change pointer events to auto");
     $(".netlogo-view-container").css("pointer-events","auto");
     $(".netlogo-view-container").css("cursor","pointer");
     Physicsb2.bindElements();
@@ -302,7 +236,11 @@ Physics = (function() {
       $("#physicsPlay").removeClass("inactive");  
       $("#physicsPause").addClass("inactive");  
     }
-    $(".netlogo-view-container").css("pointer-events","none");
+    //if (!mirroringEnabled) {
+    //  console.log("change pointer events to none");
+    //  $(".netlogo-view-container").css("pointer-events","none");
+    //
+    $(".netlogo-view-container").css("pointer-events","auto");
     $(".netlogo-view-container").css("cursor","auto");
     Physicsb2.unBindElements();
     universe.repaint();
@@ -560,7 +498,7 @@ Physics = (function() {
       var absoluteBox2dCoords = { x: offset.x - box2dCoords.x, y: offset.y - box2dCoords.y};
       var absoluteNlogoCoords = Physicsb2.box2dToPatch(absoluteBox2dCoords);
       var absoluteOffset = Physicsb2.box2dToPatch(offset);
-      center = [absoluteNlogoCoords[0] - absoluteOffset[0],absoluteNlogoCoords[0] - absoluteOffset[0] ];
+      center = [absoluteNlogoCoords[0] - absoluteOffset[0],absoluteNlogoCoords[1] - absoluteOffset[1] ];
     }
     return center;
   }
@@ -630,7 +568,7 @@ Physics = (function() {
         absoluteBox2dCoords = { x: offset.x - box2dCoords.x, y: offset.y - box2dCoords.y};
         absoluteNlogoCoords = Physicsb2.box2dToPatch(absoluteBox2dCoords);
         absoluteOffset = Physicsb2.box2dToPatch(offset);
-        relativeCenter = [absoluteNlogoCoords[0] - absoluteOffset[0],absoluteNlogoCoords[0] - absoluteOffset[0] ];
+        relativeCenter = [absoluteNlogoCoords[0] - absoluteOffset[0],absoluteNlogoCoords[1] - absoluteOffset[1] ];
         vertices.push(relativeCenter);
       }
     }
@@ -658,23 +596,25 @@ Physics = (function() {
     Physicsb2.refresh();
   }
   function setTargetRelativeXy(name, relativePatchCoords) {
-    if (Physicsb2.getTargetObj(name) && relativePatchCoords.length > 0) {
-      var bodyId = Physicsb2.getTargetObj(name).bodyId;    
+    //console.log(relativePatchCoords);
+    relativePatchCoords = [-relativePatchCoords[0], -relativePatchCoords[1]];
+    if (Physicsb2.getTargetObj(name)) {
+      var bodyId = Physicsb2.getTargetObj(name).bodyId;
       var offset = Physicsb2.getBodyObj(bodyId).GetPosition(); 
       var absolutePatchOffset = Physicsb2.box2dToPatch(offset); 
       var absoluteBox2dCoords = Physicsb2.patchToBox2d([ absolutePatchOffset[0] + relativePatchCoords[0], absolutePatchOffset[1] + relativePatchCoords[1]]);
-      Physicsb2.getTargetObj(name).coords = absoluteBox2dCoords;//Physicsb2.box2dToPatch(absoluteBox2dCoords);
-      Physicsb2.getTargetObj(name).relativeCoords = Physicsb2.getBodyObj(bodyId).GetLocalPoint(absoluteBox2dCoords);
-      Physicsb2.getTargetObj(name).snap = false;
+      var relativeCenter = {x: offset.x - absoluteBox2dCoords.x, y:offset.y - absoluteBox2dCoords.y};
+      Physicsb2.getTargetObj(name).relativeCoords = relativeCenter;
+      Physicsb2.getTargetObj(name).coords = Physicsb2.getBodyObj(bodyId).GetWorldPoint(relativeCenter);  
     }
     Physicsb2.refresh();
   }
   function setTargetXy(name, coords) {
     if (Physicsb2.getTargetObj(name)) {
       var bodyId = Physicsb2.getTargetObj(name).bodyId; 
+      var coords = patchToBox2d([ coords[0], coords[1] ]);
       Physicsb2.getTargetObj(name).coords = coords;
       Physicsb2.getTargetObj(name).relativeCoords = Physicsb2.getBodyObj(bodyId).GetLocalPoint(coords);
-      Physicsb2.getTargetObj(name).snap = false;
     }
   }
   function getTargetRelativeXy(name) {
@@ -682,17 +622,22 @@ Physics = (function() {
     if (Physicsb2.getTargetObj(name)) {
       var bodyId = Physicsb2.getTargetObj(name).bodyId;
       var offset = Physicsb2.getBodyObj(bodyId).GetPosition(); 
-      var box2dCoords = Physicsb2.getTargetObj(name).coords;
-      var absoluteOffset = { x: offset.x - box2dCoords.x, y: offset.y - box2dCoords.y};
-      absoluteOffset = Physicsb2.box2dToPatch(offset);
-      var absoluteNlogoCoords = Physicsb2.box2dToPatch(box2dCoords);
+      var box2dCoords = Physicsb2.getTargetObj(name).relativeCoords;
+      var absoluteBox2dCoords = { x: offset.x - box2dCoords.x, y: offset.y - box2dCoords.y};
+      var absoluteNlogoCoords = Physicsb2.box2dToPatch(absoluteBox2dCoords);
+      var absoluteOffset = Physicsb2.box2dToPatch(offset);
       center = [absoluteNlogoCoords[0] - absoluteOffset[0],absoluteNlogoCoords[1] - absoluteOffset[1] ];
+      center = [ -center[0], -center[1] ]
     }
     return center;
   }
   function getTargetXy(name) {
-    //console.log(Physicsb2.getTargetObj(name).coords);
-    return Physicsb2.getTargetObj(name) ? Physicsb2.getTargetObj(name).coords : [0, 0];
+    var center = [ 0, 0];
+    if (Physicsb2.getTargetObj(name)) {
+      var box2dCoords = Physicsb2.getTargetObj(name).coords;    
+      center = Physicsb2.box2dToPatch(box2dCoords);
+    }
+    return center;
   }
   
   ///////// OBJECT ////////
@@ -783,7 +728,6 @@ Physics = (function() {
       case "circle":
         result.radius = getCircleRadius(name);
         result.center = getCircleCenter(name);
-        console.log(result.radius);
     }
     return JSON.stringify(result);
   }

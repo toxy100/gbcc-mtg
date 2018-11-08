@@ -1,47 +1,39 @@
 var map;
-var markers;
 Maps = (function() {
 
   var zoom = 11;
   var center = [ 30.2672, -97.7431];
   //var map;
-  markers = {};
-  paths = {};
+  var markers = {};
+  var paths = {};
   var viewWidth;
   var viewHeight;
   var boundaries;
-  
-  //NOTES 
-  // show/hide using options.opacity 
-  // title using options.title
-  // make a path... ?
-  ////// SETUP MAP //////
+  var myLatlng = undefined;
   
   function setupInterface() {
-    viewWidth = parseFloat($(".netlogo-canvas").css("width"));
-    viewHeight = parseFloat($(".netlogo-canvas").css("height"));
-    var spanText =    "<div id='mapContainer'></div>";
-    $(".netlogo-widget-container").append(spanText);
-    $("#mapContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 2 + "px");
-    $("#mapContainer").css("height", parseFloat($(".netlogo-canvas").css("height"))  - 2 + "px");
-    $("#mapContainer").css("left", parseFloat($(".netlogo-view-container").css("left")) + 0 + "px");
-    $("#mapContainer").css("top", parseFloat($(".netlogo-view-container").css("top")) + 0 + "px");
-    //$("#mapContainer").css("display", "none");
-    $("#mapContainer").css("display","inline-block");
-    if (L) {
-      map = L.map('mapContainer').setView([ 30.2672, -97.7431], 11);      
-      if (map) { 
-        L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
-            attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        updateMap();
+    if ($("#mapContainer").length === 0) {
+      viewWidth = parseFloat($(".netlogo-canvas").css("width"));
+      viewHeight = parseFloat($(".netlogo-canvas").css("height"));
+      var spanText =    "<div class='gbcc-widget' id='mapContainer'></div>";
+      $(".netlogo-widget-container").append(spanText);
+      $("#mapContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 2 + "px");
+      $("#mapContainer").css("height", parseFloat($(".netlogo-canvas").css("height"))  - 2 + "px");
+      $("#mapContainer").css("left", parseFloat($(".netlogo-view-container").css("left")) + 0 + "px");
+      $("#mapContainer").css("top", parseFloat($(".netlogo-view-container").css("top")) + 0 + "px");
+      $("#mapContainer").css("display", "none");
+      if (L) {
+        map = L.map('mapContainer').setView([ 30.2672, -97.7431], 11);      
+        if (map) { 
+          L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+              attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+          }).addTo(map);
+          updateMap();
+        }
       }
+      setupEventListeners();
+      $("#mapContainer").css("display","none");
     }
-    setupEventListeners();
-    //hideMap();
-    //sendToBack();
-    $("#mapContainer").css("display","none");
-    $(".netlogo-view-container").css("pointer-events","none");
   }
 
   function setupEventListeners() {
@@ -64,45 +56,29 @@ Maps = (function() {
 
 
   ////// COORDINATE CONVERSION //////
-  
+
   function patchToLatlng(coords) {
     var xcor = coords[0];
     var ycor = coords[1];
-    var pixelX = universe.view.xPcorToCanvas(xcor);
-    var pixelY = universe.view.yPcorToCanvas(ycor);
-    var pixelPercentY = (pixelX / (viewWidth * 2));
-    var pixelPercentX = 1 - (pixelY / (viewHeight * 2));
-    var boundaryMinX = boundaries.xmin;
-    var boundaryMinY = boundaries.ymin;
-    var boundaryMaxX = boundaries.xmax;
-    var boundaryMaxY = boundaries.ymax;
-    //console.log(boundaries);
-    var markerX = (pixelPercentX * (boundaryMaxX - boundaryMinX)) + boundaryMinX;
-    var markerY = (pixelPercentY * (boundaryMaxY - boundaryMinY)) + boundaryMinY;
-    return ([markerX, markerY]);
+    var pixelX = universe.view.xPcorToPix(xcor);
+    var pixelY = universe.view.yPcorToPix(ycor);
+    var newLatlng = map.containerPointToLatLng({x: pixelX, y: pixelY});
+    var markerX = newLatlng.lat;
+    var markerY = newLatlng.lng;
+    return ([roundDecimal(markerX, 15), roundDecimal(markerY, 15)]);
   }
   
   function latlngToPatch(coords) {
-    var markerPositionX = coords[0];
-    var markerPositionY = coords[1];
-    var boundaryMinX = boundaries.xmin;
-    var boundaryMinY = boundaries.ymin;
-    var boundaryMaxX = boundaries.xmax;
-    var boundaryMaxY = boundaries.ymax;
-    //console.log(boundaries);
-    if ( markerPositionX < boundaryMinX 
-      || markerPositionX > boundaryMaxX
-      || markerPositionY < boundaryMinY
-      || markerPositionY > boundaryMaxY) {
-      return (["out of bounds"]);
-    }
-    var markerPercentY = ((boundaryMaxX - markerPositionX) / (boundaryMaxX - boundaryMinX));
-    var markerPercentX = 1 - (boundaryMaxY - markerPositionY) / (boundaryMaxY - boundaryMinY);
-    var pixelX = markerPercentX * viewWidth;
-    var pixelY = markerPercentY * viewHeight;
-    var patchXcor = universe.view.xPixToPcor(pixelX);
-    var patchYcor = universe.view.yPixToPcor(pixelY);
-    return ([patchXcor, patchYcor]);
+    
+    var newLatlng = L.latLng(coords[0], coords[1]);
+    var pixel = map.latLngToContainerPoint(newLatlng);
+    var patchXcor = universe.view.xPixToPcor(pixel.x);
+    var patchYcor = universe.view.yPixToPcor(pixel.y);
+    return ([roundDecimal(patchXcor, 15), roundDecimal(patchYcor, 15)]);
+  }
+
+  function roundDecimal(number, decimalPlaces) {
+    return parseFloat(parseFloat(number).toFixed(decimalPlaces));
   }
 
   ////// SHOW AND HIDE MAP //////
@@ -112,8 +88,6 @@ Maps = (function() {
     updateMap();
     if (map) { map.invalidateSize(); }
     $("#mapContainer").css("display","inline-block");
-    $("#mapContainer").css("z-index","0");
-    $(".netlogo-view-container").css("pointer-events","none");
     $(".netlogo-view-container").css("z-index","1");
     $("#opacityWrapper").css("top",parseInt($("#mapContainer").css("top") - 15) + "px");
     $("#opacityWrapper").css("left",$("#mapContainer").css("left"));
@@ -121,16 +95,18 @@ Maps = (function() {
     drawPatches = false;
     map.invalidateSize()
     world.triggerUpdate();
+    Graph.mouseOn();
+    mouseOn();
   }
   
   function hideMap() {
     $("#mapContainer").css("display","none");
-    $("#mapContainer").css("z-index","1");
-    $(".netlogo-view-container").css("pointer-events","auto");
     $(".netlogo-view-container").css("z-index","0");
     $("#opacityWrapper").css("display", "none");
     drawPatches = true;
     world.triggerUpdate();
+    Graph.mouseOn();
+    mouseOn();
   }
 
   ////// MAP SETTINGS //////
@@ -162,8 +138,10 @@ Maps = (function() {
     if (!markers[name]) { markers[name] = {}; }
     var newLatlng = L.latLng(settings[0], settings[1]);
     markers[name].latlng = newLatlng;
-    map ? markers[name].marker = L.marker(newLatlng).addTo(map) : null;
-    //markers[name].marker = leafletMarker;
+    var draggable = false;
+    markers[name].draggable = draggable;
+    //L.marker(newLatlng, {draggable:draggable, icon: new L.DivIcon({ className: 'my-div-icon', html: '<span>carolyn</span>'})}).addTo(map);
+    map ? markers[name].marker = L.marker(newLatlng, {draggable:draggable}).addTo(map) : null;
   }
   
   function createMarkers(data) {
@@ -174,6 +152,17 @@ Maps = (function() {
   
   function getMarker(name) {
     return [name, getLatlng(name)];
+  }
+  
+  function setDraggable(name, draggable) {
+    map.removeLayer(markers[name].marker);  
+    var latlng = markers[name].latlng;  
+    markers[name].marker = L.marker(latlng, {draggable:draggable}).addTo(map);
+    map.addLayer(markers[name].marker);     
+  }
+  
+  function getDraggable(name) {
+    return (markers[name] && markers[name].draggable) ? true : false;
   }
   
   function getMarkers() {
@@ -235,6 +224,21 @@ Maps = (function() {
       return [ markers[name].marker.getLatLng().lat, markers[name].marker.getLatLng().lng];
     }
     return [0, 0];
+  }
+  function getMyLatlng() {
+    if (navigator.geolocation && myLatlng) {
+      return myLatlng;
+    }
+    return getCenterLatlng(); 
+  }
+  function updateMyLatlng() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(function(position) {
+        myLatlng = [ position.coords.latitude, position.coords.longitude ];
+      });
+    } else {
+      myLatlng = getCenterLatlng();
+    }
   }
   
     ///////// PATHS /////////
@@ -463,12 +467,10 @@ Maps = (function() {
     var data = {};
     data.objects = getObjects();
     data.settings = getSettings();
-    console.log(data);
     return JSON.stringify(data);
   }
   function setAll(dataString) {
     data = JSON.parse(dataString);
-    console.log(data);
     if (data.objects) { createObjects(data.objects); }
     if (data.settings) { setSettings(data.settings); }
   }
@@ -484,6 +486,17 @@ Maps = (function() {
     setZoom(data.zoom);
     setCenterLatlng(data.centerLatlng);
   }
+  
+  function mouseOn() {
+    $(".netlogo-view-container").css("pointer-events","auto"); //show graph
+    $("#mapContainer").css("z-index","0");
+  }
+  
+  function mouseOff() {
+    $(".netlogo-view-container").css("pointer-events","none"); // hide graph, grayscale?
+    $("#mapContainer").css("z-index","-1");
+  }
+
   
   return {
     setupInterface: setupInterface,
@@ -507,6 +520,8 @@ Maps = (function() {
     getLat: getLat,
     getLng: getLng,
     getLatlng: getLatlng,
+    setDraggable: setDraggable,
+    getDraggable: getDraggable,
     //importFile: importFile,
     //exportFile: exportFile,
     //setData: setData,
@@ -514,6 +529,8 @@ Maps = (function() {
     latlngToPatch: latlngToPatch,
     patchToLatlng: patchToLatlng,
     updateMap: updateMap,
+    getMyLatlng: getMyLatlng,
+    updateMyLatlng: updateMyLatlng,
     
     createPath: createPath,
     createPaths: createPaths,
@@ -534,6 +551,8 @@ Maps = (function() {
     getOpacity: getOpacity,
     setMapOffset: setMapOffset,
     getMapOffset: getMapOffset,
+    mouseOff: mouseOff,
+    mouseOn: mouseOn,
     
     createObject: createObject,
     createObjects: createObjects,
@@ -547,8 +566,8 @@ Maps = (function() {
     hideObject: hideObject,
     
     setAll: setAll,
-    getAll: getAll,
-  
+    getAll: getAll
+
   };
  
 })();

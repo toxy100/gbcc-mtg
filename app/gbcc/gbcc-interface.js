@@ -17,7 +17,9 @@ Interface = (function() {
     $(".admin-body").css("display","inline");
     // hide all widgets
     $(".netlogo-widget").addClass("hidden");
+    $(".gbcc-widget").addClass("hidden");    
     $(".netlogo-model-title").removeClass("hidden");
+    $("#netlogo-title").html("");
     // show Welcome Students reporter
     var index = components.componentRange[0];
     var widget = "<div id='netlogo-monitor-"+index+"' class='netlogo-widget netlogo-monitor netlogo-output login login-welcome-student'>"+
@@ -93,49 +95,57 @@ Interface = (function() {
       ($("#tips").css("display") === "none") ? $("#tips").css("display","inline-block") : $("#tips").css("display","none"); 
     });
     $("#exportHtmlButton").css("display","none");
-    setupExtensions();
+    $(".netlogo-toggle-container").css("display","none")
   }
 
   function displayTeacherInterface(room, components) {
     showItems(components.componentRange[0], components.componentRange[1]);
     $(".netlogo-export-wrapper").css("display","block");
-    //var sanitizedRoom = markdown.toHTML(room);
-    var sanitizedRoom = room;
-    $("#netlogo-title").html("<p>"+$("#netlogo-title").html()+" "+sanitizedRoom.substr(3,sanitizedRoom.length));
+    $(".netlogo-ugly-button").each(function() { if ($(this).html() === "HTML") { $(this).css("display","none"); } }) // hide it?
+    var sanitizedRoom = exports.toHTML(room);
+    $("#netlogo-title").html(sanitizedRoom.substring(3, sanitizedRoom.length));
     $(".netlogo-view-container").removeClass("hidden");
     $(".netlogo-tab-area").removeClass("hidden");
     $(".admin-body").css("display","none");
+    $($(".netlogo-toggle-container")[0]).css("display","flex");
   }
 
   function displayStudentInterface(room, components, activityType) {
     showItems(components.componentRange[0], components.componentRange[1]);
-    //var sanitizedRoom = markdown.toHTML(room);
-    var sanitizedRoom = room;
-    $("#netlogo-title").html("<p>"+$("#netlogo-title").html()+" "+sanitizedRoom.substr(3,sanitizedRoom.length));
+    $(".netlogo-export-wrapper").css("display","block");
+    $(".netlogo-ugly-button").each(function() { if ($(this).html() === "HTML") { $(this).css("display","none"); } })  // hide it?
+    var sanitizedRoom = exports.toHTML(room);
+    $("#netlogo-title").html(sanitizedRoom.substring(3, sanitizedRoom.length));
     $(".netlogo-view-container").removeClass("hidden");
     $(".admin-body").css("display","none");
     $(".teacher-controls").css("display","none");
     if (activityType === "hubnet") {
-      $(".netlogo-button:not(.hidden)").click(function(e){clickHandler(this, e, "button");});
-      $(".netlogo-slider:not(.hidden)").click(function(e){clickHandler(this, e, "slider");});
-      $(".netlogo-switcher:not(.hidden)").click(function(e){clickHandler(this, e, "switcher");});
-      $(".netlogo-chooser:not(.hidden)").click(function(e){clickHandler(this, e, "chooser");});
-      $(".netlogo-input-box:not(.hidden)").click(function(e){clickHandler(this, e, "inputBox");});
-      $(".netlogo-view-container:not(.hidden)").click(function(e){clickHandler(this, e, "view");});
+      $(".netlogo-view-container").css("pointer-events","auto");
+      $(".netlogo-button:not(.hidden)").click(function(e){clickHandlerButton(this, e, "button");});
+      $(".netlogo-button:not(.hidden) input").change(function(e){clickHandlerWidget(this, e, "button");});
+      $(".netlogo-slider:not(.hidden) input").change(function(e){clickHandlerWidget(this, e, "slider");});
+      $(".netlogo-switcher:not(.hidden) input").change(function(e){clickHandlerWidget(this, e, "switcher");});
+      $(".netlogo-chooser:not(.hidden) select").change(function(e){clickHandlerWidget(this, e, "chooser");});
+      $(".netlogo-input-box:not(.hidden) textarea").change(function(e){clickHandlerWidget(this, e, "inputBox");});
+      $(".netlogo-view-container").click(function(e){clickHandlerButton(this, e, "view");});
     } else {
+      $(".netlogo-view-container").css("pointer-events","auto");
       $(".netlogo-tab-area").removeClass("hidden");
     }
+    $($(".netlogo-toggle-container")[0]).css("display","flex");
   }
 
   function displayDisconnectedInterface() {
     $(".admin-body").css("display","inline");
     $(".admin-body").html("You have been disconnected. Please refresh the page to continue.");
     $(".netlogo-widget").addClass("hidden");
+    $(".gbcc-widget").addClass("hidden");
     $("#netlogo-model-container").css("display","none");
   }
 
   function displayAdminInterface(rooms) {
     $(".netlogo-widget").addClass("hidden");
+    $(".gbcc-widget").addClass("hidden");
     $("#netlogo-model-container").css("display","none");
     $(".admin-body").html(rooms);
   }
@@ -144,26 +154,32 @@ Interface = (function() {
     socket.emit("admin clear room", {roomName: roomName, school: school});
   }
 
-  function clickHandler(thisElement, e, widget) {
+  function clickHandlerButton(thisElement, e, widget) {
     var value;
     var id = $(thisElement).attr("id");
     var label = $("#"+id+" .netlogo-label").text();
     if (widget === "view") {
-      label = "view";
-      position = [ e.clientX, e.clientY ];
+      label = "View";
       offset = $(thisElement).offset();
-      offset = [ offset.left, offset.top ];
-      pixelDimensions = [ parseFloat($(thisElement).css("width")), parseFloat($(thisElement).css("height")) ];
-      percent = [ ((position[0] - offset[0]) / pixelDimensions[0]), ((position[1] - offset[1]) / pixelDimensions[1]) ];
-      patchDimensions = [ universe.model.world.worldwidth, universe.model.world.worldheight ];
-      value = [ (percent[0] * patchDimensions[0]) +  universe.model.world.minpxcor,
-      universe.model.world.maxpycor - (percent[1] * patchDimensions[1]) ]
+      value = [ universe.view.xPixToPcor(e.clientX - offset.left), universe.view.yPixToPcor(e.clientY - offset.top) ];
     } else if (widget === "button" ) {
       value = "";
     } else {
-      value = world.observer.getGlobal(label);
+      value = world.observer.getGlobal(label.toLowerCase());
       socket.emit("send reporter", {hubnetMessageSource: "server", hubnetMessageTag: label, hubnetMessage:value});
     }
+    socket.emit("send command", {hubnetMessageTag: label, hubnetMessage:value});
+  }
+  
+  function clickHandlerWidget(thisElement, e, widget) {
+    var value;
+    var id = $(thisElement).parent().attr("id");
+    var label = $("#"+id+" .netlogo-label").text();
+    value = world.observer.getGlobal(label.toLowerCase());
+    if (value == undefined) {
+      return;
+    }
+    socket.emit("send reporter", {hubnetMessageSource: "server", hubnetMessageTag: label, hubnetMessage:value});
     socket.emit("send command", {hubnetMessageTag: label, hubnetMessage:value});
   }
 
@@ -213,21 +229,20 @@ Interface = (function() {
     var viewHeight = parseFloat($(".netlogo-canvas").css("height"));
     var spanText;
     if (activityType === "hubnet") {
-      $(".netlogo-widget-container").append("<span class='teacher-controls hidden' style='float:right'><input id='enableMirroring' checked type='checkbox'>Enable Mirroring</span>");
+      $(".netlogo-widget-container").append("<span class='gbcc-widget teacher-controls hidden' style='float:right'><input id='enableMirroring' checked type='checkbox'>Enable: Mirroring</span>");
+      $(".teacher-controls").css("top", parseFloat($(".netlogo-view-container").css("top")) + parseFloat($(".netlogo-view-container").css("height")) - 0 + "px");
+      $(".teacher-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-view-container").css("width")) - 128 + "px");
     } else {
-      spanText = "<span class='teacher-controls hidden' style='float:right'>Enable:";
+      spanText = "<span class='gbcc-widget teacher-controls hidden' style='float:right'>";
+      //spanText = "<span class='teacher-controls hidden' style='float:right'>Enable:";
       spanText += "<input id='enableView' checked type='checkbox'>View";
       spanText += "<input id='enableTabs' checked type='checkbox'>Tabs";
-      //spanText += "<input id='enableGallery' checked type='checkbox'>Gallery</span>";
-      
+      spanText += "<input id='enableGallery' checked type='checkbox'>Gallery</span>";
       $(".netlogo-widget-container").append(spanText);
+      $(".teacher-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) - 160 + "px");
     }
     $(".teacher-controls").css("position","absolute");
-    //$(".teacher-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) - 200 + "px");
-    $(".teacher-controls").css("left", parseFloat($(".netlogo-view-container").css("left")) + parseFloat($(".netlogo-canvas").css("width")) - 140 + "px");
-    
     $(".teacher-controls").css("top", parseFloat($(".netlogo-view-container").css("top")) + parseFloat($(".netlogo-canvas").css("height")) + "px");
-
     $(".netlogo-view-container").css("width", $(".netlogo-view-container canvas").css("width"));
     $("#enableView").click(function() {
       socket.emit('teacher requests UI change', {'display': $(this).prop("checked"), 'type': 'view'});
@@ -240,6 +255,14 @@ Interface = (function() {
     });
     $("#enableMirroring").click(function() {
       mirroringEnabled = $(this).prop("checked") ? true : false;
+      if (mirroringEnabled) {
+        var state = world.exportCSV();
+        var blob = myCanvas.toDataURL("image/png", 0.5); 
+
+        socket.emit('teacher requests UI change', {'display': mirroringEnabled, 'state': state, 'type': 'mirror', 'image': blob});
+      } else {
+        socket.emit('teacher requests UI change', {'display': mirroringEnabled, 'state': "", 'type': 'mirror' });        
+      }
       socket.emit('teacher requests UI change', {'display': mirroringEnabled, 'type': 'view'});
     });
   }
@@ -253,99 +276,13 @@ Interface = (function() {
     }
   }
   
-  function setupExtensions() {
-    Graph.setupInterface();
-  }
-  
-  function importImageFile() {
-    var fileInput = document.getElementById("importDrawingFileElem");
-    var xmin = $("#importDrawingFileElem").attr("xmin");
-    var ymin = $("#importDrawingFileElem").attr("ymin");
-    var width = $("#importDrawingFileElem").attr("width");
-    var height = $("#importDrawingFileElem").attr("height");
-    //var files = fileInput.files;
-    var file = fileInput.files[0];
-    var filename = file.name;
-    var src = (window.URL || window.webkitURL).createObjectURL(file);
-    if ($("#"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height).length > 0) {
-      $("#"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height).attr("src",src);
-    } else {
-      $("body").append("<img class='uploadImage' id='"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height+"' xmin=\""+xmin+"\" ymin=\""+ymin+"\" width=\""+width+"\" height=\""+height+"\" src='"+src+"' style='display:none'>");
-    }
-    universe.repaint();
-  }
-  
-  //gbcc:import-drawing ["img-from-webpage" "https://www.google.com" 0 0 200 200]
-  //gbcc:import-drawing ["img-from-file-upload" "" 0 0 200 200 ]
-  //gbcc:import-drawing ["img-from-file" "glacier.jpg" 0 0 200 200]
-  //gbcc:import-drawing ["img-remove" "" 0 0 0 0]
-  function importDrawing(data) {
-    var action = data[0];
-    var filename = data[1];
-    var xmin = data[2];
-    var ymin = data[3];
-    var width = data[4];
-    var height = data[5];
-    if (action === "img-remove") {
-      repaintPatches = true;
-      $(".uploadImage").remove();
-      universe.repaint();
-    } else {
-      repaintPatches = false;
-      if (action === "img-from-webpage") {
-        // Code from: https://shkspr.mobi/blog/2015/11/google-secret-screenshot-api/
-        site = filename;
-        filename = "screenshot-from-url-"+$(".uploadImage").length;
-        $.ajax({
-          url: 'https://www.googleapis.com/pagespeedonline/v1/runPagespeed?url=' + site + '&screenshot=true',
-          context: this,
-          type: 'GET',
-          dataType: 'json',
-          success: function(allData) {
-            imgData = allData.screenshot.data.replace(/_/g, '/').replace(/-/g, '+');
-            imgData = 'data:image/jpeg;base64,' + imgData;
-            if ($("#"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height).length > 0) {
-              $("#"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height).attr("src",imgData);
-            } else {
-              $("body").append("<img class='uploadImage' id='"+filename+"-"+xmin+"-"+ymin+"-"+width+"-"+height+"' xmin=\""+xmin+"\" ymin=\""+ymin+"\" width=\""+width+"\" height=\""+height+"\" src='"+imgData+"' style='display:none'>");
-            }
-            universe.repaint();
-          }
-        });
-      } else if (action === "img-from-file-upload") {
-        $("#importDrawingFileElem").attr("xmin",xmin);
-        $("#importDrawingFileElem").attr("ymin",ymin);
-        $("#importDrawingFileElem").attr("width",width);
-        $("#importDrawingFileElem").attr("height",height);
-        $("#importDrawingFileElem").click();
-      } else if (action === "img-from-file") {
-        $.get("images/"+filename)
-        .done(function() { 
-          // Do something now you know the image exists.
-          if ($("#"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height).length > 0) {
-            $("#"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height).attr("src","images/"+filename);
-          } else {
-            $("body").append("<img class='uploadImage' id='"+filename.replace(".","")+"-"+xmin+"-"+ymin+"-"+width+"-"+height+"' xmin=\""+xmin+"\" ymin=\""+ymin+"\" width=\""+width+"\" height=\""+height+"\" src='images/"+filename+"' style='display:none'>");
-          }
-          universe.repaint();
-        }).fail(function() { 
-        // Image doesn't exist - do something else.
-        });
-        
-        
-      }
-    }
-  }
-
   return {
     showLogin: displayLoginInterface,
     showTeacher: displayTeacherInterface,
     showStudent: displayStudentInterface,
     showDisconnected: displayDisconnectedInterface,
     showAdmin: displayAdminInterface,
-    clearRoom: clearRoom,
-    importDrawing: importDrawing,
-    importImageFile: importImageFile
+    clearRoom: clearRoom
   };
  
 })();

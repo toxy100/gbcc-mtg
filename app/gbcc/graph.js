@@ -17,48 +17,61 @@ Graph = (function() {
     if ($("#graphContainer").length === 0) {
       viewWidth = parseFloat($(".netlogo-canvas").css("width"));
       viewHeight = parseFloat($(".netlogo-canvas").css("height"));
-      spanText =    "<div id='graphContainer'></div>";
+      spanText =    "<div class='gbcc-widget' id='graphContainer'></div>";
       $(".netlogo-widget-container").append(spanText);
       $("#graphContainer").css("width", parseFloat($(".netlogo-canvas").css("width")) - 1 + "px");
       $("#graphContainer").css("height", parseFloat($(".netlogo-canvas").css("height")) - 1 + "px");
       $("#graphContainer").css("left", $(".netlogo-view-container").css("left"));
       $("#graphContainer").css("top", $(".netlogo-view-container").css("top"));
       $("#graphContainer").css("display", "none");
-      $(".netlogo-view-container").css("pointer-events","none");
-      //applet1 = new GGBApplet({filename: "geogebra-default.ggb", "appletOnLoad": appletOnLoadVisible}, true);
-      applet1 = new GGBApplet({filename: "geogebra-default.ggb"}, true);
+      applet1 = new GGBApplet({filename: "geogebra-default.ggb","showToolbar":true, "appletOnLoad": appletOnLoadHidden}, true);
       applet1.inject('graphContainer');
       setupEventListeners();
+      $("body").append(spanText);
     }
   }
   
+  function appletOnLoadHidden(){
+    console.log("APPLET ONLOAD HIDDEN");
+    showGraph();
+    updateGraph();
+    hideGraph();
+    ggbApplet.setErrorDialogsActive(false);  
+  }
+  
   function appletOnLoadVisible() {
-    setTimeout(function(){ 
-      updateGraph(); 
-      $("#graphContainer").css("display","inline-block");
-      $(".netlogo-view-container").css("z-index","1");
-      ggbApplet.setErrorDialogsActive(false);  
-    }, 1000);
+    console.log("APPLET ONLOAD VISIBLE");
+    showGraph();
+    updateGraph(); 
+    ggbApplet.setErrorDialogsActive(false);  
+  }
+  
+  function appletOnLoadDeleteFile(filename) {
+    console.log("applet onload delete file");
+    showGraph();
+    updateGraph(); 
+    ggbApplet.setErrorDialogsActive(false);   
+    console.log(filename);
+    console.log("APPLET ONLOAD VISIBLE DELETE FILE");
+    socket.emit('delete file', {'filename': filename});
   }
   
   function setupEventListeners() {
-    $(".netlogo-view-container").css("background-color","transparent");   
+    $(".netlogo-view-container").css("background-color","transparent");  
   }
   
   ////// DISPLAY GRAPH //////
   
   function updateGraph() {
     if (ggbApplet) {
+      ggbApplet.setWidth(parseInt($("#graphContainer").css("width")) - 2);
+      ggbApplet.setHeight(parseInt($("#graphContainer").css("height")) - 2);//+ viewHeight + Math.random(1)); 
       
-      ggbApplet.setWidth(parseInt($("#graphContainer").css("width")) + Math.random(1));
-      ggbApplet.setHeight(parseInt($("#graphContainer").css("height")) + Math.random(1));//+ viewHeight + Math.random(1)); 
       $("#opacityWrapper").css("top",parseInt($("#graphContainer").css("top")) - 18 + "px");
       $("#opacityWrapper").css("left",$("#graphContainer").css("left"));
       var properties = JSON.parse(ggbApplet.getViewProperties());
       graphWidth = properties.width;
       graphHeight = properties.height;
-      //graphWidth = parseInt($("#graphContainer").css("width"));
-      //graphHeight = parseInt($("#graphContainer").css("height"));
       viewOffsetWidth = viewWidth - graphWidth;
       viewOffsetHeight = viewHeight - graphHeight;
       var xMin = properties.xMin;
@@ -69,11 +82,6 @@ Graph = (function() {
       var yMax = graphHeight * yScale + yMin;
       boundaries = {xmin: xMin, xmax: xMax, ymin: yMin, ymax: yMax};
       graphLoaded = true;
-      //var newWidth = viewWidth + Math.random(1);
-      //var newHeight = viewHeight + Math.random(1);
-      //ggbApplet.setWidth(newWidth);
-      //ggbApplet.setHeight(newHeight); 
-
     }
   }
   
@@ -129,52 +137,109 @@ Graph = (function() {
   ////// SHOW AND HIDE GRAPH //////
   
   function showGraph() {
-    if (!applet1) 
-    {
-      $("#graphContainer").css("display","none");
-      importGgb("geogebra-default.ggb");
-    } else { 
-      $("#graphContainer").css("display","inline-block");
-      $(".netlogo-view-container").css("z-index","1");
-      world.triggerUpdate();
-
-    }
     $("#graphContainer").css("display","inline-block");
-    $(".netlogo-view-container").css("pointer-events","none");
+    $(".netlogo-view-container").css("z-index","0");
     $("#opacityWrapper").css("top",parseInt($("#graphContainer").css("top") - 15) + "px");
     $("#opacityWrapper").css("left",$("#graphContainer").css("left"));
     $("#opacityWrapper").css("display", "inline-block");
     drawPatches = false;
     updateGraph();
     world.triggerUpdate();
+    Maps.mouseOn();
+    mouseOn();
   }
   
   function hideGraph() {
-    $("#graphContainer").css("display","none");
-    $(".netlogo-view-container").css("z-index","0");
-    $(".netlogo-view-container").css("pointer-events","auto");
-    $("#opacityWrapper").css("display", "none");
     drawPatches = true;
     world.triggerUpdate();
-  }
+    $("#graphContainer").css("display","none");
+    $(".netlogo-view-container").css("z-index","0");
+    $("#opacityWrapper").css("display", "none");
+    Maps.mouseOn();
+    mouseOn();
+  }  
 
-  ///////// GRAPH SETTINGS  ///////
-  
+
   ///////// IMPORT GGB ///////
   
-  function importGgb(filename) { 
-    //drawPatches = true;
-    //universe.repaint();
-    if ($("#graphContainer").css("display") === "none") { showGraph(); }
-    //$("#graphContainer").css("display","inline-block");
+  function uploadGgb() { 
+    $("#ggbzip").one("change", function() {
+      $("#ggbzip").off();
+      var files = $(this).get(0).files;
+      if (files.length > 0){
+        var formData = new FormData();
+        var file = files[0];
+        formData.append('uploads[]', file, file.name);
+        $.ajax({
+           url: '/uploadggb',
+           type: 'POST',
+           data: formData,
+           processData: false,
+           contentType: false,
+           success: function(data){
+               console.log('upload successful!\n' + data);
+           }
+         });
+       }
+    });
+    $("#ggbzip").click();
+    $("#ggbzip").value = "";
+  }
+
+  function importGgbFile(filename) {
+    console.log("import ggb filename "+filename);
     applet1 = new GGBApplet({filename: filename,"showToolbar":true, "appletOnLoad": appletOnLoadVisible}, true);
     applet1.inject('graphContainer');
   }
   
-  //////// POINTS /////////
+  function importGgbDeleteFile(data) {
+    //console.log("import ggb delete file "+filename);
+    //applet1 = new GGBApplet({filename: filename,"showToolbar":true, "appletOnLoad": appletOnLoadDeleteFile(filename)}, true);
+    //applet1.inject('graphContainer');
+    setAll(data);
+  }
   
+  function importGgb() {
+    $("#importgbccfile").one("change", function() {
+      $("#importgbccfile").off();
+      //$("#importgbcctype").val("ggb");
+      var files = $(this).get(0).files;
+      if (files.length > 0){
+        var formData = new FormData();
+        var file = files[0];
+        formData.append(socket.id, file);
+        $.ajax({
+           url: '/importgbccform?filetype=ggb',
+           type: 'POST',
+           data: formData,
+           processData: false,
+           contentType: false,
+           success: function(data){
+               console.log('upload successful!\n' + data);
+              $("#importgbccfile").val("");
+           }
+         });
+       }
+    });
+    $("#importgbccfile").click();
+    $("#importgbccfile").value = "";
+  }
+ 
+  function exportGgb(filename) {
+    $("#exportgbccfilename").val(filename);
+    $("#ggbxml").val(ggbApplet.getXML());
+    $("#exportgbcctype").val("ggb");
+    $("#exportgbccform").submit();
+  }
+  
+  function getGgbList() {
+    return ["some file names"];
+  }
+  
+  //////// POINTS /////////
+
   function createPoint(name, coords) {
-    console.log("create point",name,coords);
+    //console.log("create point",name,coords);
     var x = coords[0];
     var y = coords[1];
     ggbApplet.evalCommand(name + " = ("+x+", "+y+")");
@@ -221,7 +286,7 @@ Graph = (function() {
   
   function setX(name, x) {
     var y = ggbApplet.getYcoord(name);
-    if (ggbApplet.exists(name)) {
+    if (exists(name)) {
       ggbApplet.setCoords(name, x, y);
     } else {
       ggbApplet.evalCommand(name + " = ("+x+", "+y+")");
@@ -230,7 +295,7 @@ Graph = (function() {
   
   function setY(name, y) {
     var x = ggbApplet.getXcoord(name);
-    if (ggbApplet.exists(name)) {
+    if (exists(name)) {
       ggbApplet.setCoords(name, x, y);
     } else {
       ggbApplet.evalCommand(name + " = ("+x+", "+y+")");
@@ -240,7 +305,7 @@ Graph = (function() {
   function setXy(name, coords) {
     var x = coords[0];
     var y = coords[1];
-    if (ggbApplet.exists(name)) {
+    if (exists(name)) {
       ggbApplet.setCoords(name, x, y);
     } else {
       ggbApplet.evalCommand(name + " = ("+x+", "+y+")");
@@ -281,19 +346,12 @@ Graph = (function() {
     var valueTypes = [ "numeric", "text", "boolean" ];
     var commandTypes = [  ];
     var valueString = ggbApplet.getValueString(name);
+    result.valueString = valueString;
     var commandString = ggbApplet.getCommandString(name);
-      result.command = commandString ? commandString : valueString; 
-      
+    result.command = commandString ? commandString : valueString; 
+    result.commandString = commandString;
     if (result.command.indexOf("=") < 0) {
       result.command = name + " = " + result.command;
-      //console.log(name);
-      //console.log(ggbApplet.getObjectType(name));
-      //try {
-      //  result.xcoord = ggbApplet.getXcoord(name);
-      //  result.ycoord = ggbApplet.getYcoord(name);
-    //} catch {
-        
-      //}
     } 
     //console.log(name+" '"+ result.command + "'");
     result.color = ggbApplet.getColor(name); 
@@ -304,14 +362,13 @@ Graph = (function() {
     result.visible = ggbApplet.getVisible(name);
     result.filling = ggbApplet.getFilling(name);
     result.labelVisible = ggbApplet.getLabelVisible(name);
-
+    result.draggable = ggbApplet.isMoveable(name);
     if (objectType === "numeric" || objectType === "boolean" || objectType === "text") { result.visible = false; }
     var resultString = JSON.stringify(result);
     return [ name, resultString ];  
   }
   
   function createObjects(objects) {
-    console.log("create objects")
     for (var i=0; i<objects.length; i++) {
       createObject(objects[i]);
     }
@@ -340,6 +397,7 @@ Graph = (function() {
     ggbApplet.setVisible(name, result.visible);
     ggbApplet.setFilling(name, result.filling);
     ggbApplet.setLabelVisible(name, result.labelVisible);
+    setDraggable(name, result.draggable);
     //if (result.xcoord && result.ycoord) { 
     //  ggbApplet.setCoords(name, result.xcoord, result.ycoord, 0); 
     //}
@@ -385,19 +443,48 @@ Graph = (function() {
     return (ggbApplet) ? ggbApplet.exists(name) : false;
   }
   
+  function getCommandString(name) {
+    return (exists(name)) ? ggbApplet.getCommandString(name) : "undefined";
+  }
+  
+  function getValueString(name) {
+    return (exists(name)) ? ggbApplet.getValueString(name) : "undefined";
+  }
+  
+  function setDraggable(name, draggable) {
+    if (exists(name)) {
+      if (draggable) {
+        ggbApplet.setFixed(name, false, true);
+      } else {
+        ggbApplet.setFixed(name, true, false);      
+      }
+    }
+  }
+  
+  function getDraggable(name) {
+    return exists(name) ? ggbApplet.isMoveable(name) : false;
+  }
+  
+  function showObjectLabel(name) {
+    ggbApplet.setLabelVisible(name, true);
+  }
+  
+  function hideObjectLabel(name) {
+    ggbApplet.setLabelVisible(name, false);
+  }
+  
   /////// GEOGEBRA EVAL ///////
   
   function evalCommand(cmdString) {
-    console.log("evalCommand '"+cmdString+"'");
     try {
         if (graphLoaded) { 
-          ggbApplet.evalCommand(cmdString) 
+          ggbApplet.evalCommand(cmdString); 
         } else {
-          console.log("cannot evalCommand")
+          console.log("cannot evalCommand");
         };
       //}
     } catch (ex) {
-      console.log("cannot evalCommand")
+      console.log("cannot evalCommand");
     }
   }
   
@@ -413,12 +500,15 @@ Graph = (function() {
     ggbApplet.setXML(xmlString);
   }
   
+  /////// GRAPH APPEARANCE ///////
+  
   function showToolbar() {
     ggbApplet.showToolBar(true);
   }
   
   function hideToolbar() {
     ggbApplet.showToolBar(false);
+    updateGraph();
   }
   
   function bringToFront() {
@@ -438,22 +528,14 @@ Graph = (function() {
     return parseFloat($("#graphContainer").css("opacity"));
   }
   
-  function showObjectLabel(name) {
-    ggbApplet.setLabelVisible(name, true);
-  }
-  
-  function hideObjectLabel(name) {
-    ggbApplet.setLabelVisible(name, false);
-  }
-  
   function setGraphOffset(offset) {
     var top = offset[1] + "px";
     var left = offset[0] + "px";
     $("#graphContainer").css("top", top);
     $("#graphContainer").css("left", left);   
     if (offset.length === 4) {
-      ggbApplet.setWidth(width);
-      ggbApplet.setHeight(height);
+      ggbApplet.setWidth(width - 2);
+      ggbApplet.setHeight(height - 2);
       var height = offset[3] + "px";
       var width = offset[2] + "px";
       $("#graphContainer").css("height", height);
@@ -474,6 +556,18 @@ Graph = (function() {
     var y = center[1];
     ggbApplet.evalCommand("CenterView(( " + x + ", " + y + " ))");
   }
+  
+  function mouseOn() {
+    $(".netlogo-view-container").css("pointer-events","auto");//show graph
+    $("#graphContainer").css("z-index","0");
+  }
+  
+  function mouseOff() {      
+    $(".netlogo-view-container").css("pointer-events","none"); // hide graph, grayscale?
+    $("#graphContainer").css("z-index","-1");
+  }
+  
+  
   
   return {
     setupInterface: setupInterface,
@@ -511,6 +605,7 @@ Graph = (function() {
     hideToolbar: hideToolbar,
     showObjectLabel: showObjectLabel,
     hideObjectLabel: hideObjectLabel,
+    
     bringToFront: bringToFront,
     sendToBack: sendToBack,
     setOpacity: setOpacity,
@@ -519,10 +614,23 @@ Graph = (function() {
     hideObjectLabel: hideObjectLabel,
     setGraphOffset: setGraphOffset,
     getGraphOffset: getGraphOffset,
+    mouseOff: mouseOff,
+    mouseOn: mouseOn,
+    uploadGgb: uploadGgb,
+    importGgbFile: importGgbFile,
+    getGgbList: getGgbList,
+    importGgbDeleteFile: importGgbDeleteFile,
+    
     deletePoints: deletePoints,
     deletePoint: deletePoint,
     getPoint: getPoint,
-    centerView: centerView
+    centerView: centerView,
+    exportGgb: exportGgb,
+    createObject: createObject,
+    setDraggable: setDraggable,
+    getDraggable: getDraggable,
+    getCommandString: getCommandString,
+    getValueString: getValueString
   };
  
 })();

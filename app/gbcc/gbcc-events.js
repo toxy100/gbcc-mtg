@@ -41,5 +41,10 @@ jQuery(document).ready(function() {
   $("#importDrawingFileElem").change(function(event) {
     Interface.importImageFile();
   });
-
+  
+  // require confirmation before leaving site
+  window.onbeforeunload = function() {
+      return true;
+  };
+  document.title = "GbCC: "+$("#nlogo-code").attr("data-filename").replace(".nlogo","");
 });
