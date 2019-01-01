@@ -17,8 +17,9 @@
     "allowCanvasForeverButtons": false, 
     "allowGalleryControls": false, 
     "allowTeacherControls": true, 
+    "allowMirrorControl": true, 
     "legacyHubnet": true, 
-    "secondViewString": false
+    "secondView": [226,67,666,505]
   }
 }
 

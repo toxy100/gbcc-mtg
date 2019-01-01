@@ -117,8 +117,10 @@
       if (drawPatches) {
         this.patchDrawer.repaint(this.model);
       }
+      if (drawDrawing) {
+        this.drawingLayer.repaint(this.model);
+      }
       // <!-- END GBCC -->
-      this.drawingLayer.repaint(this.model);
       this.turtleDrawer.repaint(this.model);
       this.spotlightDrawer.repaint(this.model);
       return this.view.repaint(this.model);
@@ -135,14 +137,13 @@
       for (k = 0, len = updates.length; k < len; k++) {
         u = updates[k];
         // <!-- GBCC -->
-        if (socket && activityType === "hubnet" && myUserType === "teacher") {
+        if (socket && myUserType === "teacher" && mirroringEnabled) {
           socket.emit('send mirror reporter', {
             hubnetMessageSource: "server",
             hubnetMessageTag: "",
             hubnetMessage: modelUpdate[k]
           });
         }
-        //universe = this;
         // <!-- END GBCC -->
 
         this.applyUpdate(u);

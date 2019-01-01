@@ -4,6 +4,7 @@ globals [
 ]
 
 breed [ students student ]
+breed [ lines line]
 
 patches-own [
   psugar           ; the amount of sugar on this patch
@@ -15,10 +16,10 @@ students-own [
   user-id   ; students choose a user name when they log in whenever you receive a
             ; message from the student associated with this turtle hubnet-message-source
             ; will contain the user-id
-  sugar          ; the amount of sugar this turtle has
-  metabolism     ; the amount of sugar that each turtles loses each tick
-  vision         ; the distance that this turtle can see in the horizontal and vertical directions
-  vision-points  ; the points that this turtle can see in relative to it's current position (based on vision)
+  sugar           ; the amount of sugar this turtle has
+  metabolism      ; the amount of sugar that each turtles loses each tick
+  vision          ; the distance that this turtle can see in the horizontal and vertical directions
+  vision-points   ; the points that this turtle can see in relative to it's current position (based on vision)
   next-task  ; the next task a turtle will run. Can be either harvest, invest, go-to-school, or chill.
   state      ; the current state a turtle is in. Used to switch between tasks. Can be either harvesting, investing, schooling, or chilling.
   my-timer   ; a countdown timer to disable movements when in a certain state, such as at school
@@ -28,9 +29,9 @@ students-own [
 
 ;;;;;;;;; Setup Procedures ;;;;;;;;
 
-to startup
-  hubnet-reset          ; automatically initialize hubnet architecture upon starting the model
-end
+;to startup
+;  hubnet-reset          ; automatically initialize hubnet architecture upon starting the model
+;end
 
 to setup
   ; clear patches and plots, instead of clear all, to preserve students' connections to the server
@@ -42,30 +43,60 @@ to setup
   ask patches [
     patch-growback
     patch-recolor
+    set pcolor gray
   ]
 
-  ; detect any user actions (if any student has joined, left, or clicked buttons)
-  listen-clients
+  listen-clients ; detect any user actions (if any student has joined, left, or clicked buttons)
 
   ask students [
     refresh-student
     hubnet-send user-id "message" "Welcome to SugarScape!"
   ]
 
-  if sum [sugar] of students > 0 [ update-lorenz-and-gini ] ; avoids division by 0 problem
+  if sum [sugar] of students > 0 [ update-lorenz-and-gini ]
   reset-ticks
 end
 
 to setup-patches
-  ask patches [
-    ; All patches are the same in this version, containing 2 sugar
-    set max-psugar 2
-    set psugar max-psugar
-    ; Hide the world from students so they don't see the global distribution of sugar
-    set pcolor gray
+  ask (patch-set patch 15 15 patch 33 33) [ask patches with [psugar = 0] in-radius 4 [ set max-psugar 4 set psugar max-psugar ]]
+  ask (patch-set patch 15 15 patch 33 33) [ask patches with [psugar = 0] in-radius 7 [ set max-psugar 3 set psugar max-psugar ]]
+  ask (patch-set patch 15 15 patch 33 33) [ask patches with [psugar = 0] in-radius 11 [ set max-psugar 2 set psugar max-psugar ]]
+  ask (patch-set patch 15 15 patch 33 33) [ask patches with [psugar = 0] in-radius 16 [ set max-psugar 1 set psugar max-psugar ]]
+  draw-grid
+end
+
+to draw-grid
+  draw-horizontal-lines
+  draw-vertical-lines
+end
+
+to draw-horizontal-lines
+  let i min-pxcor
+  repeat 25 [
+    create-lines 1 [
+      set shape "line"
+      set size world-width
+      set color gray
+      set heading 90
+      set ycor i - 0.5
+      set i i + 2
+    ]
   ]
 end
 
+to draw-vertical-lines
+  let i min-pycor
+  repeat 25 [
+    create-lines 1 [
+      set shape "line"
+      set size world-height
+      set color gray
+      set heading 0
+      set xcor i - 0.5
+      set i i + 2
+    ]
+  ]
+end
 ;;;;;;; Go Procedures ;;;;;;;
 
 to go
@@ -80,19 +111,20 @@ to go
 
   ask students [
     ; On each tick, start with has-moved = false. Once a button is clicked, set it to true,
-    ; so the model stops taking new clicks within a single tick. See "execute-move" procedure for more.
+    ; so the model stop taking new clicks within a single tick. See "execute-move" procedure for more.
     set has-moved? false
     ifelse state = "broke" [
       run next-task
     ][
       if sugar <= 0 [
-        hubnet-send user-id "message" "You ran out of sugar. You will freeze for a while as a penalty and will then continue with 25 sugar."
+        hubnet-send user-id "message" "You ran out of sugar. You will freeze for a while as a penalty and will then continue with 5 sugar."
         set my-timer 30
         set next-task [ -> resume ]
         set state "broke"
       ]
       run next-task
-      send-info-to-clients        ; send resulting information for this round (this tick) to clients' interface to display
+      ; send resulting information for this round (this tick) to clients' interface to display
+      send-info-to-clients
     ]
   ]
   if sum [sugar] of students > 0 [ update-lorenz-and-gini ]
@@ -118,7 +150,7 @@ to listen-clients
   ]
 end
 
-; Procedure to create a new student
+; procedure to create a new student
 to create-new-student
   create-students 1 [
     set user-id hubnet-message-source     ; assign a user-id to the student who just entered
@@ -131,15 +163,16 @@ end
 
 ; procedure to set a student back to the initial conditions
 to refresh-student ; student procedure
-  ; in this model, everyone starts with the same sugar, metabolism, and vision
-  set sugar 25
-  set metabolism 1
-  set vision 3
+  ; randomly assign an endowment of sugar, metabolism, and vision
+  set sugar random-in-range 5 25
+  set metabolism random-in-range 1 3
+  set vision random-in-range 1 6
 
   set shape "default"
   set size 1
   set has-moved? false
-  move-to one-of patches with [not any? other turtles-here]     ; randomly choose one empty patch to place the student
+  ; randomly choose one empty patch to place the student
+  move-to one-of patches with [not any? other students-here]
 
   set vision-points nobody
   visualize-view-points
@@ -150,13 +183,13 @@ to refresh-student ; student procedure
   send-info-to-clients
 end
 
-; Procedure to remove a student
+; procedure to remove a student
 to remove-student
-  ask students with [ user-id = hubnet-message-source ][ die ]
+  ask students with [ user-id = hubnet-message-source ] [ die ]
 end
 
 ; procedure to handle student action requests
-to execute-command [ command ] ; student procedure
+to execute-command [ command ]
   if command = "up"      [ execute-move 0 ]
   if command = "down"    [ execute-move 180 ]
   if command = "right"   [ execute-move 90 ]
@@ -166,7 +199,7 @@ end
 
 to send-info-to-clients ; student procedure
   ; set the client view to follow the agent so it's always at the
-  ; center of the view (showing 7 patches in each direction around the agent)
+  ; center of the view (showing 7 patches in each direction around the agent).
   hubnet-send-follow user-id self 7
   hubnet-send user-id "sugar" sugar
 end
@@ -183,32 +216,40 @@ end
 ; procedure to calculate the "vision" of each student for their client
 to visualize-view-points ; student procedure
   hubnet-clear-overrides user-id
-  hubnet-send-override user-id self "label" [ "" ]        ; initializes view overrides
+  ; initializes view overrides
+  hubnet-send-override user-id self "label" [ "" ]
   calculate-view-points vision
-  ; recolor students' labels in "vision" as black, instead of gray
-  hubnet-send-override user-id turtles-on vision-points "label-color" [ black ]
-  ; reveal the true color of the patches in "vision", instead of gray
   hubnet-send-override user-id vision-points "pcolor" [ true-color ]
-  ; recolor students in "vision" as red, instead of gray
-  hubnet-send-override user-id turtles-on vision-points "color" [ red ]
+  hubnet-send-override user-id students-on vision-points "color" [ red ]
+  hubnet-send-override user-id students-on vision-points "label-color" [ black ]
   set vision-points nobody
 end
 
 ; to chill means to do nothing
-to chill ; student procedure
+to chill
 end
 
 ; resume after being broke
-to resume  ; student procedure
+to resume ; student procedure
   ifelse my-timer > 0 [
-    hubnet-clear-overrides user-id         ; creates the visual effect of a big red X flashing
+    ; creates the visual effect of a big red X flashing
+    hubnet-clear-overrides user-id
+    hubnet-send-override user-id self "label" [ "" ]
     hubnet-send-override user-id self "color" [ red ]
     set shape "x"
     set size 2
-    set my-timer my-timer - 1              ; reduce the timer by 1 each tick until it reaches 0
-  ][                                       ; when time runs out, refresh the student and let it go back to play
-    refresh-student
-    hubnet-send user-id "message" "Now you continue with 25 sugar."
+    visualize-view-points
+    ; reduce the timer by 1 each tick until it reaches 0
+    set my-timer my-timer - 1
+  ][ ; when time runs out, refresh the student and let it go back to play
+    set shape "default"
+    set size 1
+
+    set next-task [ -> chill ]
+    set state "chilling"
+    send-info-to-clients
+    set sugar 5
+    hubnet-send user-id "message" "Now you continue with 5 sugar."
   ]
 end
 
@@ -219,7 +260,7 @@ to execute-move [ new-heading ] ; student procedure
     ifelse state = "chilling" [
       set heading new-heading
       if can-move? 1 [
-        if not any? turtles-on patch-ahead 1 [
+        if not any? students-on patch-ahead 1 [
           fd 1
           hubnet-send user-id "message" "moving..."
           visualize-view-points
@@ -252,7 +293,7 @@ end
 to harvest ; student procedure
   hubnet-send user-id "message" "harvesting..."
   let net-income sugar - metabolism + psugar
-  ifelse net-income < 0 [ set sugar 0 ][ set sugar net-income ]  ; sugar should never go below 0
+  ifelse net-income < 0 [ set sugar 0 ][ set sugar net-income ]
   set psugar 0
   set next-task [ -> chill ]
   set state "chilling"
@@ -269,8 +310,8 @@ end
 
 ; procedure to update statistics for the plots
 to update-lorenz-and-gini
-  let num-people count turtles
-  let sorted-wealths sort [sugar] of turtles
+  let num-people count students
+  let sorted-wealths sort [sugar] of students
   let total-wealth sum sorted-wealths
   let wealth-sum-so-far 0
   let index 0
@@ -280,7 +321,7 @@ to update-lorenz-and-gini
   repeat num-people [
     set wealth-sum-so-far (wealth-sum-so-far + item index sorted-wealths)
     set lorenz-points lput ((wealth-sum-so-far / total-wealth) * 100) lorenz-points
-    set index index + 1
+    set index (index + 1)
     set gini-index-reserve gini-index-reserve + (index / num-people) - (wealth-sum-so-far / total-wealth)
   ]
 end
@@ -303,7 +344,7 @@ GRAPHICS-WINDOW
 -1
 10.0
 1
-10
+7
 1
 1
 1
@@ -325,7 +366,7 @@ BUTTON
 2
 10
 103
-57
+56
 NIL
 setup
 NIL
@@ -356,9 +397,9 @@ NIL
 0
 
 BUTTON
-355
+370
 525
-460
+475
 558
 show-world
 ask patches [ set pcolor true-color ]
@@ -373,9 +414,9 @@ NIL
 0
 
 BUTTON
-466
+481
 525
-566
+581
 558
 hide-world
 ask patches [ set pcolor gray ]
@@ -392,7 +433,7 @@ NIL
 PLOT
 725
 175
-908
+921
 348
 Lorenz curve
 Pop %
@@ -406,12 +447,12 @@ false
 "" ""
 PENS
 "equal" 100.0 0 -7500403 true ";; draw a straight line from lower left to upper right\nset-current-plot-pen \"equal\"\nplot 0\nplot 100" ""
-"lorenz" 1.0 0 -2674135 true "" "plot-pen-reset\nif any? students [ \nset-plot-pen-interval 100 / count turtles\nplot 0\nforeach lorenz-points plot\n]"
+"lorenz" 1.0 0 -2674135 true "" "plot-pen-reset\nif any? students [ \nset-plot-pen-interval 100 / count students\nplot 0\nforeach lorenz-points plot\n]"
 
 PLOT
 725
 355
-909
+921
 520
 Gini index vs. time
 Time
@@ -429,10 +470,10 @@ PENS
 PLOT
 724
 10
-908
+921
 169
 Wealth distribution
-Population
+People
 Wealth
 0.0
 10.0
@@ -440,51 +481,43 @@ Wealth
 10.0
 true
 false
-"set-plot-x-range 0 count turtles" "clear-plot\nif any? students [ \nset-plot-x-range 0 count turtles\nlet bar-list sort-on [sugar] turtles\nforeach bar-list [the-turtle -> ask the-turtle [plotxy position self bar-list sugar]]\n]"
+"set-plot-x-range 0 count students" "clear-plot\nif any? students [ \nset-plot-x-range 0 count students\nlet bar-list sort-on [sugar] students\nforeach bar-list [the-turtle -> ask the-turtle [plotxy position self bar-list sugar]]\n]"
 PENS
-"pen-0" 1.0 1 -16777216 true "" ""
+"default" 1.0 1 -16777216 true "" ""
 
 MONITOR
 2
-60
-211
-105
+61
+212
+106
 sugar-mean
 mean [sugar] of students
-1
+2
 1
 11
 
 @#$#@#$#@
 ## WHAT IS IT?
 
-Mind the Gap (MTG) is a curricular unit revolving around a series of three agent-based participatory simulations (ABPSs). The goal of the MTG curricular unit is to help high school students understand important mechanisms of wealth inequality in the U.S., through the lens of complex systems with NetLogo HubNet-based participatory activities.
+This HubNet model is the second model of the MTG series. Mind the Gap (MTG) is a curricular unit revolving around a series of three agent-based participatory simulations (ABPSs). The goal of the MTG curricular unit is to help high school students understand important mechanisms of wealth inequality in the U.S. through the lens of complex systems with NetLogo HubNet-based participatory activities. For more details about the unit, refer to Mind the Gap 1 Equal Opportunities HubNet Model--the first model of the MTG series.
 
-ABPSs are collaborative learning activities for students to collectively experience and explore the interrelationship between "micromotives" and "macrobehavior" in agent-based models. In a regular ABM, a computer controls the behavior of agents, but in a PartSim, each student takes control of an agent in the model.
-
-The design of the MTG ABPSs was informed by the SugarScape agent-based models (Epstein & Axtell, 1996; Li & Wilensky 2009). Like in the original SugarScape models, the simulation space in the MTG ABPSs consists two major parts: 1) the “land”, where resources (sugar) can be harvested to become people’s wealth; 2) the people, each of which is an avatar controlled directly by a student, who competes with other students to harvest the most sugar and become the wealthiest in the simulation. The students are connected to the teacher's server through the HubNet architecture,  like in an online multiplayer game.
-
-This HubNet model is the first of the MTG series, representing a world of equal opportunities and low individual variations. The goal of this model is to let students experience that even with equal opportunities and low individual variations, inequality can still emerge due to personal differences, such as motivation, intelligence, and so forth. While acknowledging differences in personal characteristics, the extent of inequality, as measured by the Lorenz curve and Gini index, is relatively low.
+The goal of this model is to let students experience the power of an uncontrollable force that contributes to wealth inequality. In this model, sugar is unevenly distributed across the checkerboard. Students are randomly placed on the board and are also randomly assigned different visions, metabolisms, and endowments. Therefore, the initial conditions that a student starts with, to a large extent, determine the student’s course of life in this simulation. Students come to realize that when faced with the force of randomness (luck), instead of personal abilities, luck usually shapes the course of life.
 
 ## HOW IT WORKS
 
-The "land" in this model is represented by a 50 by 50 checkerboard. Each patch on the checkerboard contains the same amount of sugar (2 units of sugar). Each person (or agent) has a few attributes:
+The "land" in this model is represented by a 50 by 50 world. Each patch contains a predetermined amount of sugar (2 units of sugar). The color of the patch shows the amount of sugar it contains: the darker the yellow, the more sugar it has. Each person (or agent) has a few attributes:
 
-1. Vision: how many patches (steps) away an agent can see.
+1. Vision: how many patches (steps) away an agent can see; a randomly assigned number between 1 and 6. Note that vision is not circular, but along a cross in the cardinal directions.
 
-2. Endowment: how many units of sugar an agent starts with.
+2. Endowment: how many units of sugar an agent starts with; a randomly assigned amount of sugar between 5 and 25.
 
-3. Metabolism: how many units of sugar is needed for moving one step or doing one harvest.
+3. Metabolism: how many units of sugar is needed for moving one step or doing one harvest; a randomly assigned amount of sugar between 1 and 3.
 
-An agent's vision in this model is in 4 directions, in a cross. The length of the cross is equal to the vision slider value.
+Students have some actions they can take:
 
-In this model, every agent has the same attributes, including 2 steps of vision, and endowment of 25 units of sugar, and a metabolism of 1 sugar.
+1. Move: by clicking the direction buttons or the keyboard shortcuts on the HubNet client, students can move around. Each click moves the student by one step and burns METABOLISM amount of sugar.
 
-Students can take two kinds of actions:
-
-1. Move: by clicking the direction buttons or the keyboard shortcuts, students can move around. Each click moves the student by one step and burns METABOLISM amount of sugar.
-
-2. Harvest: by clicking the harvest button, students harvest all the sugar on the patch that he or she is standing on. One harvest burns METABOLISM amount of sugar.
+2. Harvest: by clicking the harvest button, students harvest all the sugar on the tile that he or she is standing on. One harvest burns METABOLISM amount of sugar.
 
 ## HOW TO USE IT
 
@@ -500,19 +533,19 @@ SUGAR-MEAN: the average of all students' current sugar.
 
 SHOW-WORLD: shows the underlying sugar distribution and the locations of each agent. By default, the world is hidden, because students are not supposed to know about the resource distribution. SHOW-WORLD can be used after students played the simulation. During the discussion phase, the teacher can show students what kind of world they were in.
 
-HIDE-WORLD: after showing the world, the teacher can hide the world again from the students, so the whole checkerboard turns grey and students’ avatars invisible.
+HIDE-WORLD: after showing the world, the teacher can hide the world again from the students, so the whole checkerboard turns grey and students’ avatars become invisible.
 
 Wealth distribution plot: a bar chart, in which each bar represents a student's sugar, sorted from the lowest to the highest.
 
 Lorenz curve plot: a chart that shows the cumulative percent of wealth (y axis) owned by the cumulative percentage of the population (x axis). The perfectly equal distribution is the gray diagonal line (e.g., the bottom 30% of the population owns 30% of the total wealth). The farther the red curve deviates from the diagonal line, the more unequal the wealth distribution (e.g., the bottom 30% of the population owns 1% of the total wealth). The Lorenz curve is a cumulative percentage version of the Wealth distribution plot.
 
-Gini index vs. time: The Gini index is a numerical value between 0 and 1 that measures wealth inequality, with 0 being perfectly equal and 1 being extremely unequal. The plot shows the Gini index (y axis) over time (x axis)
+Gini index vs. time: Gini index is a numerical value between 0 and 1, with 0 being perfectly equal and 1 being extremely unequal, that measure the wealth inequality. The plot shows Gini index (y axis) over time (x axis)
 
-The plots automatically update based on the real time aggregation of the amount of sugar that students own.
+The plots automatically update based on real time aggregation of the amount of sugar that students own.
 
 ## THINGS TO NOTICE
 
-At the individual level, pay attention to your initial conditions: What is your endowment? (how much sugar do you start with?); What is your vision (how far you can see, as measured in numbers of patches); What is your metabolism? (See THINGS TO TRY for tips on figuring out your metabolism).
+At the individual level, pay attention to your initial conditions: What is your endowment? (how much sugar do you start with?); What is your vision (how far you can see, as measured in numbers of patches); What is your metabolism? (See THINGS TO TRY for tips of figuring out your metabolism).
 
 Pay attention to the color of the patch that you are harvesting. When you harvest it, it becomes white. But it returns to yellow soon after being harvested, indicating the sugar on that patch grew back.
 
@@ -520,37 +553,41 @@ How does your sugar change? Pay attention to the sugar monitor on your interface
 
 What happens when you go broke?
 
-At the aggregate level (on the teacher’s interface), pay attention to the three plots, especially the relationship between the Wealth distribution plot and the Lorenz curve.
+At the aggregate level (on the teacher's interface), pay attention to the three plots, especially the relationship between the Wealth distribution plot and the Lorenz curve.
 
 The Lorenz curve can be derived from the wealth distribution plot by converting the actual amount of sugar that each participant owns (what the height of each bar in the wealth distribution plot represents) into cumulative percentages in the Lorenz curve, which can be interpreted as “the bottom certain percent of the population own certain percent of the world’s wealth”. Therefore, the shape of the area under the red curve in the Lorenz curve plot looks like the shape of the bars in the wealth distribution plot, except that the red curve is stretched unevenly along the y axis.
 
 Pay attention to how one plot’s shape changes in relation to the other and how well the sugar-mean represents everybody’s wealth.
 
+Compare the three plots with those in the first model. How and why do they differ?
+
 ## THINGS TO TRY
 
-Try taking one step by clicking any of the directional buttons. How much sugar does it take to move one step? That amount is your metabolism. Try clicking the harvest button. Does your total sugar increase, decrease, or stay the same? Do you know why? (Tip: each harvest burns the same amount of sugar as moving one step).
+Try taking one step by clicking any of the directional buttons. How much sugar does it take to move one step? That amount is your METABOLISM. Try clicking the harvest button. Does your total sugar increase, decrease, or stay the same? Do you know why? (Tip: each harvest burns the same amount of sugar as moving one step).
 
 Do you want to move or not? Why? If you do want to move, do you know where to move? (Tip: what is your vision?)
 
 How rich are you in your class? Who is the richest? How did you or they become the richest? Share your experience with the whole class.
 
-Discuss how the simulation compare to the real world. Do you see any analogies? What do vision, endowment, and metabolism mean in the real world? Can you find a real-world story that maps onto your experience in the simulation?
+Discuss how the simulation compares to the real world. Do you see any analogies? What do vision, endowment, and metabolism mean in the real world? Can you find a real-world story that maps onto your experience in the simulation?
 
 ## EXTENDING THE MODEL
 
-Agents in this model live forever. The model currently does not incorporate aging, death, birth, or generations. Try to extend the model by adding these mechanisms, so participants can explore important ideas such as inheritance and intergenerational mobility.
+The agents' conditions in this model are assigned completely at random. In the real world however, these conditions usually correlate with each other. For example, if a person is born into a rich neighborhood, his or her endowment is usually also high. Try to extend the model by adding some correlations, so participants can experience scenarios that more closely resemble the real world.
 
 ## NETLOGO FEATURES
 
-This model uses `hubnet-view-override` and `hubnet-send-follow` to create the view seen on the clients' interface. `hubnet-send-override` allows the clients to see a view that is different than the host's view. In this model, clients only see a small part of the virtual world. `hubnet-send-follow` keeps the user at the center of the client's view and puts a halo around it. The user is always centered even when it's moving.
+This model initializes each patch's sugar and color by using the file-read primitive based on the data provided in an external file.
 
-This model also makes use of *anonymous procedures*, which allow agents to change states (e.g. from "chilling" to "broke"), in which the agents follow different rules at each tick (e.g. when an agent is in the "chilling" state, at each tick, the user's button clicks are executed. However, if the agent is in the "broke" state, the user's button clicks are ignored). Users switch between states in two ways: when in the "chilling" state, if the agent runs out of sugar, it goes into the "broke" state. Meanwhile, a timer starts to count down. When the timer goes down to zero, the agent goes out of the "broke" state and enters the "chilling" state again.
+This model uses `hubnet-view-override` and `hubnet-send-follow` to create the view seen on the clients' interface. `hubnet-send-override` allows the clients see a view that is different that the host. In this model, clients only see a small part of the virtual world. `hubnet-send-follow` keeps the user at the center of the client's view and puts a halo around it. The user is always centered even when it's moving.
+
+This model also makes use of *anonymous procedures*, which allow agents to change states (E.g. from "chilling" to "broke"), in which the agents follow different rules at each tick (E.g. when an agent is in the "chilling" state, at each tick, the user's button clicks are executed. However, if the agent is in the "broke" state, the user's button clicks are ignored). Users switch between states in two ways: when in the "chilling" state, if the agent runs out of sugar, it goes into the "broke" state. Meanwhile, a timer starts to count down. When to timer goes down to zero, the agent goes out of the "broke" state and enters the "chilling" state again.
 
 ## RELATED MODELS
 
 Other models in the Mind the Gap HubNet suite include:
 
-* Mind the Gap 2 Random Assignment HubNet Model
+* Mind the Gap 1 Equal Opportunities HubNet Model
 * Mind the Gap 3 Feedback Loop HubNet Model
 
 The model is also related to the NetLogo SugarScape suite, including:
@@ -563,7 +600,7 @@ The model is also related to the NetLogo SugarScape suite, including:
 
 Epstein, J. and Axtell, R. (1996). Growing Artificial Societies: Social Science from the Bottom Up. Washington, D.C.: Brookings Institution Press.
 
-Li, J. and Wilensky, U. (2009). NetLogo Sugarscape 1 Immediate Growback model. http://ccl.northwestern.edu/netlogo/models/Sugarscape1ImmediateGrowback. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+Li, J. and Wilensky, U. (2009). NetLogo Sugarscape 3 Wealth Distribution model. http://ccl.northwestern.edu/netlogo/models/Sugarscape3WealthDistribution. Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
 
 ## HOW TO CITE
 
@@ -571,7 +608,7 @@ If you mention this model or the NetLogo software in a publication, we ask that 
 
 For the model itself:
 
-* Guo, Y. and Wilensky, U. (2018).  NetLogo MTG 1 Equal Opportunities HubNet model.  http://ccl.northwestern.edu/netlogo/models/MTG1EqualOpportunitiesHubNet.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
+* Guo, Y. and Wilensky, U. (2018).  NetLogo MTG 2 Random Assignment HubNet model.  http://ccl.northwestern.edu/netlogo/models/MTG2RandomAssignmentHubNet.  Center for Connected Learning and Computer-Based Modeling, Northwestern University, Evanston, IL.
 
 Please cite the NetLogo software as:
 

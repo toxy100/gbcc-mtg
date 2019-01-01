@@ -19194,7 +19194,7 @@ function hasOwnProperty(obj, prop) {
   module.exports = {
     dumper: void 0,
     init: function(workspace) {
-      var addToStream, adoptCanvas, broadcast, broadcastAvatar, broadcastPlot, broadcastText, broadcastView, clearBroadcast, clearBroadcasts, cloneCanvas, compileObserverCode, compilePatchCode, compileTurtleCode, exportMyData, exportOurData, get, getActiveUserList, getCanvasList, getFileList, getFromUser, getStream, getStreamFromUser, getUserList, getVacantIndices, hidePatches, importMyData, importMyDataFile, importOurData, importOurDataFile, removeCanvas, restoreGlobals, restoreGlobalsFromUser, runObserverCode, runPatchCode, runTurtleCode, send, set, showPatches, storeGlobals, whoAmI;
+      var addToStream, adoptCanvas, broadcast, broadcastAvatar, broadcastPlot, broadcastText, broadcastView, clearBroadcast, clearBroadcasts, compileObserverCode, compilePatchCode, compileTurtleCode, exportMyData, exportOurData, get, getActiveUserList, getCanvasList, getFileList, getFromUser, getStream, getStreamFromUser, getUserList, getVacantIndices, hidePatches, importMyData, importMyDataFile, importOurData, importOurDataFile, mirroring, muteCanvas, myRole, restoreGlobals, restoreGlobalsFromUser, restoreState, restoreStateFromUser, runObserverCode, runPatchCode, runTurtleCode, send, set, showPatches, storeGlobals, storeState, unmuteCanvas, whoAmI;
       set = function(messageTag, message) {
         socket.emit('send reporter', {
           hubnetMessageSource: "server",
@@ -19261,8 +19261,8 @@ function hasOwnProperty(obj, prop) {
       broadcastPlot = function(name) {
         return Gallery.broadcastPlot(name);
       };
-      broadcastText = function(text) {
-        return Gallery.broadcastText(text);
+      broadcastText = function(tag, message) {
+        return Gallery.broadcastText(tag, message);
       };
       broadcastAvatar = function(shape, color, text) {
         return Gallery.broadcastAvatar(shape, color, text);
@@ -19377,11 +19377,26 @@ function hasOwnProperty(obj, prop) {
       getFileList = function() {
         return GbccFileManager.getFileList();
       };
-      cloneCanvas = function() {
-        return Gallery.cloneCanvas();
+      muteCanvas = function(canvasId) {
+        return Gallery.muteCanvas(canvasId);
       };
-      removeCanvas = function(userId) {
-        return Gallery.cloneCanvas(userId);
+      unmuteCanvas = function(canvasId) {
+        return Gallery.unmuteCanvas(canvasId);
+      };
+      myRole = function() {
+        return Gallery.myRole();
+      };
+      mirroring = function() {
+        return Gallery.mirroring();
+      };
+      storeState = function() {
+        return Gallery.storeState();
+      };
+      restoreState = function() {
+        return Gallery.restoreState();
+      };
+      restoreStateFromUser = function(messageSource) {
+        return Gallery.restoreStateFromUser(messageSource);
       };
       return {
         name: "gbcc",
@@ -19424,8 +19439,13 @@ function hasOwnProperty(obj, prop) {
           "GET-USER-LIST": getUserList,
           "GET-ACTIVE-USER-LIST": getActiveUserList,
           "ADOPT-CANVAS": adoptCanvas,
-          "CLONE-CANVAS": cloneCanvas,
-          "REMOVE-CANVAS": removeCanvas
+          "MUTE-CANVAS": muteCanvas,
+          "UNMUTE-CANVAS": unmuteCanvas,
+          "MY-ROLE": myRole,
+          "MIRRORING": mirroring,
+          "STORE-STATE": storeState,
+          "RESTORE-STATE": restoreState,
+          "RESTORE-STATE-FROM-USER": restoreStateFromUser
         }
       };
     }
@@ -19730,9 +19750,9 @@ function hasOwnProperty(obj, prop) {
   module.exports = {
     dumper: void 0,
     init: function(workspace) {
-      var clearImage, importFromUser, importImage, importPcolors, resetZoom, zoom;
-      importImage = function(filename) {
-        Images.importImage(filename);
+      var clearImage, importFile, importFromUser, importPcolors, resetZoom, zoom;
+      importFile = function(filename) {
+        Images.importFile(filename);
       };
       zoom = function(scale) {
         world.zoom(scale);
@@ -19752,7 +19772,7 @@ function hasOwnProperty(obj, prop) {
       return {
         name: "image",
         prims: {
-          "IMPORT": importImage,
+          "IMPORT-FILE": importFile,
           "ZOOM": zoom,
           "RESET-ZOOM": resetZoom,
           "IMPORT-PCOLORS": importPcolors,

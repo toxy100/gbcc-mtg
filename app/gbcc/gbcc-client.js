@@ -10,9 +10,11 @@ var foreverButtonCode = new Object();
 var myUserType;
 var activityType = undefined;
 var drawPatches = true;
+var drawDrawing = true;
 var mirroringEnabled;
 var myCanvas;
 var myUserId;
+var netlogoGlobals = {};
   
 jQuery(document).ready(function() {
 
@@ -34,7 +36,6 @@ jQuery(document).ready(function() {
 
   // save student settings
   socket.on("save settings", function(data) {
-    
     userId = data.userId;
     myUserType = data.userType;
     teacherId = data.teacherId;
@@ -43,16 +44,17 @@ jQuery(document).ready(function() {
     Physics.setupInterface();
     Maps.setupInterface();
     Graph.setupInterface();
+    //Images.setupInterface();
     allowMultipleButtonsSelected = data.gallerySettings.allowMultipleSelections; 
     allowGalleryForeverButton = data.gallerySettings.allowGalleryControls;
     $(".roomNameInput").val(data.myRoom);
     $(".schoolNameInput").val(data.school);
-    var secondView = data.gallerySettings.secondViewString;
-    if (myUserType === "student" && typeof secondView === "object" && secondView.length === 4) {
+    var secondView = data.gallerySettings.secondView;
+    if (myUserType === "student" && typeof secondView === "object" && secondView.length > 3) {
       $(".netlogo-view-container").css("left", secondView[0]);
       $(".netlogo-view-container").css("top", secondView[1]);
-      $(".netlogo-view-container").css("width", secondView[2] - secondView[0]);
-      $(".netlogo-view-container").css("height", secondView[3] - secondView[1]);    
+      $(".netlogo-canvas").css("left", secondView[0]);
+      $(".netlogo-canvas").css("top", secondView[1]);
     }
   });
 
@@ -82,6 +84,9 @@ jQuery(document).ready(function() {
         activityType = data.activityType;
         Interface.showLogin(data.rooms, data.components);
         break;
+      case "remove login":
+        Interface.removeLogin(data.room);
+        break;
       case "disconnected":
         Interface.showDisconnected();
         break;
@@ -89,7 +94,6 @@ jQuery(document).ready(function() {
   });
 
   socket.on("gbcc user enters", function(data) {
-    console.log("gbcc user enters",data);
     var uId = data.userId;
     var uType = data.userType;
     if (data.userData) {
@@ -111,7 +115,6 @@ jQuery(document).ready(function() {
   });
   
   socket.on("gbcc user exits", function(data) {
-    console.log(data);
     if (userData[data.userId] && userData[data.userId].reserved) { 
       userData[data.userId].reserved = data.userData.reserved;
     }
@@ -148,6 +151,7 @@ jQuery(document).ready(function() {
 
   // show or hide student view or gallery
   socket.on("student accepts UI change", function(data) {
+    //console.log("STUDENT accepts UI change "+data.type);
     if (data.type === "view") {
       (data.display) ? $(".netlogo-view-container").css("display","block") : $(".netlogo-view-container").css("display","none");
     } else if (data.type === "tabs") {
@@ -174,20 +178,35 @@ jQuery(document).ready(function() {
     }
     if (data.type === "mirror") {
       mirroringEnabled = data.display;
-      mirroringEnabled ? $(".netlogo-view-container").css("display","block") : $(".netlogo-view-container").css("display","none");
+      if (activityType === "hubnet") {
+        mirroringEnabled ? $(".netlogo-view-container").css("display","block") : $(".netlogo-view-container").css("display","none");
+      }
       if (data.image && mirroringEnabled) {
         universe.model.drawingEvents.push({type: "import-drawing", sourcePath: data.image});
       }
-      if (data.state) {
-        if (mirroringEnabled) {
-          myWorld = data.state;
+      if (mirroringEnabled) {
+        myWorld = world.exportState();
+        if (data.state) {
           ImportExportPrims.importWorldRaw(data.state);
-        } else {
-          if (myWorld) { 
-            world.importState(myWorld);
-          }
         }
-      } 
+        // teacher turns mirroing on
+        // restore globals
+        for (var g in netlogoGlobals) {
+          world.observer.setGlobal(g, netlogoGlobals[g]);
+        }
+      } else {
+        // teacher turns mirroring off 
+        // store globals 
+        var globalVars = world.observer.varNames();
+        for (var g in globalVars) {
+          netlogoGlobals[globalVars[g]] =  world.observer.getGlobal(globalVars[g]);
+        }
+        if (myWorld) {
+          world.clearAll(); 
+          world.importState(myWorld);
+        }
+      }
+      //} 
     }
   });
   
@@ -196,6 +215,26 @@ jQuery(document).ready(function() {
     var state = world.exportCSV();
     var blob = myCanvas.toDataURL("image/png", 0.5);
     socket.emit('teacher requests UI change new entry', {'userId':  data.userId, 'state': state, 'image': blob});
+  });
+  
+  //"student accepts request to share state"
+  socket.on("student accepts state request", function(data) {
+    var state = {};
+    state.myUserData = userData[myUserId];
+    state.myWorld = world.exportCSV();
+    state.blob = myCanvas.toDataURL("image/png", 0.5);
+    state.graph = Graph.getAll();
+    state.maps = Maps.getAll();
+    socket.emit('student replies state request', {userId:  data.userId, state: state});
+  });
+  
+  //"students accepts and loads new state"
+  socket.on("student accepts state change", function(data) {
+    Gallery.storeState();
+    var state = data.state;
+    if (userData[myUserId] && userData[myUserId].reserved && userData[myUserId].reserved.state) {
+      Gallery.restoreStateData(state);
+    }
   });
 
   // students display reporters
@@ -222,7 +261,6 @@ jQuery(document).ready(function() {
   });
   
   socket.on("display canvas reporter", function(data) {
-    console.log("display canvas reporter");
     if (!allowGalleryForeverButton || (allowGalleryForeverButton && !$(".netlogo-gallery-tab").hasClass("selected"))) {
       Gallery.displayCanvas({
         message:data.hubnetMessage,
@@ -446,37 +484,8 @@ jQuery(document).ready(function() {
   });
   
   socket.on("accept canvas override", function(data) {
-    //console.log("accept canvas override",data);
-    var hubnetMessageTag = data.hubnetMessageTag;
-    var hubnetMessage = data.hubnetMessage;
-    var adoptedUserId = hubnetMessage.adoptedUserId;
-    var originalUserId = hubnetMessage.originalUserId;
-    if (hubnetMessageTag === "adopt-canvas") {
-      if (myUserId === originalUserId) {
-        updateMyCanvas(myUserId, "false");
-        myUserId = adoptedUserId;
-        $(".myUserIdInput").val(myUserId);
-        updateMyCanvas(myUserId, "true");
-      } else {
-        $("#gallery-item-"+originalUserId).attr("claimed","false"); 
-        $("#gallery-item-"+adoptedUserId).attr("claimed","true");      
-      }
-    } 
-    else if (hubnetMessageTag === "release-canvas") {
-      if (adoptedUserId) {
-        $("#gallery-item-"+adoptedUserId).attr("claimed","false");
-      } else {
-        $("#gallery-item-"+originalUserId).attr("claimed","false");
-      }
-    }
+    Gallery.acceptCanvasOverride(data);
   });
-  
-  function updateMyCanvas(uId, state) {
-    $("#gallery-item-"+myUserId).attr("myUser",state);  
-    $("#gallery-item-"+myUserId).attr("claimed",state);      
-    (state === "true") ?$("#gallery-item-"+myUserId+" .label").addClass("selected") : $("#gallery-item-"+myUserId+" .label").removeClass("selected");
-  }
-
   
   socket.on("accept all user data", function(data) {
     if (!allowGalleryForeverButton || (allowGalleryForeverButton && !$(".netlogo-gallery-tab-content").hasClass("selected"))) {
@@ -504,6 +513,16 @@ jQuery(document).ready(function() {
         userStreamData[data.userId] = {};
         if ($.isEmptyObject(foreverButtonCode)) { myForeverButtonVar = setInterval(runForeverButtonCode, 200); }
         foreverButtonCode[data.userId] = "gbcc-forever-button-code-"+data.userId;
+        break;
+      case "mousedown":
+        if (procedures.gbccOnMousedown) {
+          session.runCode('try { var reporterContext = false; var letVars = { }; procedures["GBCC-ON-MOUSEDOWN"]("'+data.mouse.pxcor+'","'+data.mouse.pycor+'"); } catch (e) { if (e instanceof Exception.StopInterrupt) { return e; } else { throw e; } }');
+        }
+        break;
+      case "mouseup":
+        if (procedures.gbccOnMouseup) {
+          session.runCode('try { var reporterContext = false; var letVars = { }; procedures["GBCC-ON-MOUSEUP"]("'+data.mouse.pxcor+'","'+data.mouse.pycor+'"); } catch (e) { if (e instanceof Exception.StopInterrupt) { return e; } else { throw e; } }');
+        }
         break;
     }
   });
