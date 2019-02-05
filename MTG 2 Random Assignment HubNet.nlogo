@@ -225,7 +225,7 @@ to refresh-student ; student procedure
   set size 1
   set has-moved? false
   ; randomly choose one empty patch to place the student
-  move-to one-of patches with [not any? other turtles-here]
+  move-to one-of patches with [not any? other students-here]
 
   set vision-points nobody
   visualize-view-points
@@ -273,8 +273,8 @@ to visualize-view-points ; student procedure
   hubnet-send-override user-id self "label" [ "" ]
   calculate-view-points vision
   hubnet-send-override user-id vision-points "pcolor" [ true-color ]
-  hubnet-send-override user-id turtles-on vision-points "color" [ red ]
-  hubnet-send-override user-id turtles-on vision-points "label-color" [ black ]
+  hubnet-send-override user-id students-on vision-points "color" [ red ]
+  hubnet-send-override user-id students-on vision-points "label-color" [ black ]
   set vision-points nobody
 end
 
@@ -313,7 +313,7 @@ to execute-move [ new-heading ] ; student procedure
     ifelse state = "chilling" [
       set heading new-heading
       if can-move? 1 [
-        if not any? turtles-on patch-ahead 1 [
+        if not any? students-on patch-ahead 1 [
           fd 1
           hubnet-send user-id "message" "moving..."
           visualize-view-points
@@ -363,8 +363,8 @@ end
 
 ; procedure to update statistics for the plots
 to update-lorenz-and-gini
-  let num-people count turtles
-  let sorted-wealths sort [sugar] of turtles
+  let num-people count students
+  let sorted-wealths sort [sugar] of students
   let total-wealth sum sorted-wealths
   let wealth-sum-so-far 0
   let index 0
