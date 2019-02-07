@@ -28,6 +28,9 @@ students-own [
 ]
 
 ;;;;;;;;; Setup Procedures ;;;;;;;;
+;to startup
+;  hubnet-reset
+;end
 
 to setup
   ; clear patches and plots, instead of clear all, to preserve students' connections to the server
@@ -500,7 +503,7 @@ false
 "" ""
 PENS
 "equal" 100.0 0 -7500403 true ";; draw a straight line from lower left to upper right\nset-current-plot-pen \"equal\"\nplot 0\nplot 100" ""
-"lorenz" 1.0 0 -2674135 true "" "plot-pen-reset\nif any? students [ \nset-plot-pen-interval 100 / count turtles\nplot 0\nforeach lorenz-points plot\n]"
+"lorenz" 1.0 0 -2674135 true "" "plot-pen-reset\nif any? students [ \nset-plot-pen-interval 100 / count students\nplot 0\nforeach lorenz-points plot\n]"
 
 PLOT
 725
@@ -534,7 +537,7 @@ Wealth
 10.0
 true
 false
-"set-plot-x-range 0 count turtles" "clear-plot\nif any? students [ \nset-plot-x-range 0 count turtles\nlet bar-list sort-on [sugar] turtles\nforeach bar-list [the-turtle -> ask the-turtle [plotxy position self bar-list sugar]]\n]"
+"set-plot-x-range 0 count students" "clear-plot\nif any? students [ \nset-plot-x-range 0 count students\nlet bar-list sort-on [sugar] students\nforeach bar-list [the-student -> ask the-student [plotxy position self bar-list sugar]]\n]"
 PENS
 "default" 1.0 1 -16777216 true "" ""
 
